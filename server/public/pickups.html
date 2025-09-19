@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pickups</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="toolbar">
+          <h1>Pickups</h1>
+          <div>
+            <a id="exportLink" href="/api/export"><button class="secondary">Export JSON</button></a>
+            <button id="refresh">Refresh</button>
+            <a href="/"><button class="ghost">Back</button></a>
+          </div>
+        </div>
+        <div id="list" class="card"></div>
+      </div>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Manage People</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="toolbar">
+          <h1>People</h1>
+          <a href="/"><button class="ghost">Back</button></a>
+        </div>
+        <form id="personForm" class="card">
+          <div class="row">
+            <div class="col"><input id="name" placeholder="Full name" required /></div>
+            <div class="col"><input id="phone" placeholder="Phone" /></div>
+          </div>
+          <div class="row"><div class="col"><input id="email" placeholder="Email" /></div><div class="col"><input id="address" placeholder="Address" /></div></div>
+          <div style="margin-top:8px"><button>Add person</button></div>
+        </form>
+
+        <h2 class="small muted">Existing people</h2>
+        <div id="people" class="people-list card"></div>
+      </div>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

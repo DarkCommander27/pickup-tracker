@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pickup Signing</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="toolbar">
+          <h1>Pickup Signing</h1>
+          <a href="/"><button class="ghost">Back</button></a>
+        </div>
+
+        <div class="steps small muted"><div class="step-label">1 — Person</div><div class="step-label">2 — Items</div><div class="step-label">3 — Signature</div></div>
+        <div class="progress-wrap"><div id="progress" class="progress" style="width:33%"></div></div>
+
+        <div id="wizard">
+          <div class="step" id="step1">
+            <h2 class="small muted">Step 1 — Date & Person</h2>
+            <label class="small muted">Picker (select to autofill)</label>
+            <select id="personSelect"><option value="">-- new person --</option></select>
+            <input id="name" placeholder="Name" />
+            <input id="address" placeholder="Address" />
+            <input id="date" placeholder="YYYY-MM-DD" />
+            <div style="margin-top:8px"><button id="toStep2">Next: Items</button></div>
+          </div>
+
+          <div class="step" id="step2" style="display:none">
+            <h2 class="small muted">Step 2 — Items Received</h2>
+            <label><input type="checkbox" id="itemFood" /> Food</label>
+            <label><input type="checkbox" id="itemHousehold" /> Household Items</label>
+            <label><input type="checkbox" id="itemClothes" /> Clothes</label>
+            <div style="margin-top:8px">
+              <button id="backTo1" class="secondary">Back</button>
+              <button id="toStep3">Next: Signature</button>
+            </div>
+          </div>
+
+          <div class="step" id="step3" style="display:none">
+            <h2 class="small muted">Step 3 — Signature</h2>
+            <canvas id="sig" width="600" height="200"></canvas>
+            <div style="margin-top:8px">
+              <button id="clearSig" class="secondary">Clear</button>
+              <button id="backTo2" class="secondary">Back</button>
+              <button id="save">Save Pickup (with signature)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>
