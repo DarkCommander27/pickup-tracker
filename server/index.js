@@ -1,7 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { Low, JSONFile } = require('lowdb');
+const { Low } = require('lowdb');
+const { JSONFile } = require('lowdb/node');
 const path = require('path');
 
 const app = express();
@@ -14,10 +15,18 @@ app.use(session({ secret: process.env.SESSION_SECRET || 'change-this-secret', re
 const bcrypt = require('bcryptjs');
 const PDFDocument = require('pdfkit');
 
-// simple admin user from env: set ADMIN_USER and ADMIN_PASS (plain) — we'll hash the pass in-memory
+// SECURITY WARNING: Change default credentials in production!
+// Set ADMIN_USER and ADMIN_PASS environment variables
+// Set SESSION_SECRET environment variable to a strong random string
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'password';
 const ADMIN_HASH = bcrypt.hashSync(ADMIN_PASS, 8);
+
+// Input validation and sanitization
+function validateAndSanitizeInput(input, maxLength = 1000) {
+  if (typeof input !== 'string') return '';
+  return input.trim().substring(0, maxLength);
+}
 
 function requireAdmin(req, res, next) {
   if (req.session && req.session.admin) return next();
@@ -25,16 +34,18 @@ function requireAdmin(req, res, next) {
 }
 
 // Serve static client files from public/
-const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
 
 const dbFile = path.join(__dirname, 'db.json');
 const adapter = new JSONFile(dbFile);
-const db = new Low(adapter);
+const defaultData = { pickups: [], nextId: 1 };
+const db = new Low(adapter, defaultData);
 
 async function initDb() {
   await db.read();
   db.data = db.data || { pickups: [], nextId: 1 };
+  db.data.persons = db.data.persons || [];
+  db.data.nextPersonId = db.data.nextPersonId || 1;
   await db.write();
 }
 
@@ -46,7 +57,11 @@ app.get('/api/pickups', async (req, res) => {
 });
 
 app.post('/api/pickups', async (req, res) => {
-  const { name, address, date, notes } = req.body;
+  const name = validateAndSanitizeInput(req.body.name, 255);
+  const address = validateAndSanitizeInput(req.body.address, 500);
+  const date = validateAndSanitizeInput(req.body.date, 20);
+  const notes = validateAndSanitizeInput(req.body.notes, 1000);
+  
   if (!name || !address || !date) return res.status(400).json({ error: 'name, address, date required' });
   await db.read();
   const pickup = { id: db.data.nextId++, name, address, date, notes: notes || '' };
@@ -58,10 +73,16 @@ app.post('/api/pickups', async (req, res) => {
 // Create pickup with optional signature
 app.post('/api/pickups/sign', async (req, res) => {
   // Accepts { name, address, date, notes, signature, items }
-  const { name, address, date, notes, signature, items } = req.body;
+  const name = validateAndSanitizeInput(req.body.name, 255);
+  const address = validateAndSanitizeInput(req.body.address, 500);
+  const date = validateAndSanitizeInput(req.body.date, 20);
+  const notes = validateAndSanitizeInput(req.body.notes, 1000);
+  const signature = req.body.signature; // Keep signature as-is (base64 data URL)
+  const items = Array.isArray(req.body.items) ? req.body.items.map(item => validateAndSanitizeInput(item, 100)) : [];
+  
   if (!name || !date) return res.status(400).json({ error: 'name and date required' });
   await db.read();
-  const pickup = { id: db.data.nextId++, name, address: address || '', date, notes: notes || '', signature: signature || null, items: items || [] };
+  const pickup = { id: db.data.nextId++, name, address: address || '', date, notes: notes || '', signature: signature || null, items };
   db.data.pickups.push(pickup);
   await db.write();
   res.status(201).json(pickup);
@@ -74,7 +95,11 @@ app.get('/api/persons', async (req, res) => {
 });
 
 app.post('/api/persons', async (req, res) => {
-  const { name, phone, email, address } = req.body;
+  const name = validateAndSanitizeInput(req.body.name, 255);
+  const phone = validateAndSanitizeInput(req.body.phone, 50);
+  const email = validateAndSanitizeInput(req.body.email, 255);
+  const address = validateAndSanitizeInput(req.body.address, 500);
+  
   if (!name) return res.status(400).json({ error: 'name required' });
   await db.read();
   db.data.persons = db.data.persons || [];

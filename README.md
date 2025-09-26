@@ -3,6 +3,19 @@ nonprofit-pickup-tracker
 
 This folder contains a local-first pickup tracker server and static client pages. Use the installer or Docker to package and run the server on a laptop.
 
+## Security
+
+**Important:** This application uses default credentials for demonstration purposes. In production:
+
+- Set `ADMIN_USER` environment variable (default: 'admin')
+- Set `ADMIN_PASS` environment variable (default: 'password')  
+- Set `SESSION_SECRET` environment variable to a strong random string
+
+The application includes:
+- XSS protection via HTML escaping
+- Input validation and sanitization
+- Session-based authentication for admin functions
+
 Quick run (developer):
 
 ```bash

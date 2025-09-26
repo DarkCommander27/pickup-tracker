@@ -1,6 +1,14 @@
 {
   "pickups": [],
   "nextId": 1,
-  "persons": [],
-  "nextPersonId": 1
+  "persons": [
+    {
+      "id": 1,
+      "name": "<script>alert('XSS')</script>John Doe",
+      "phone": "<img src=x onerror=alert('XSS')>123-456-7890",
+      "email": "john@example.com",
+      "address": "123 Main St"
+    }
+  ],
+  "nextPersonId": 2
 }
