@@ -82,7 +82,6 @@ async function setupPickupPage() {
 
   document.getElementById('save').addEventListener('click', async () => {
     const name = document.getElementById('name').value.trim();
-    const address = document.getElementById('address').value.trim();
     const date = document.getElementById('date').value.trim();
     const notesEl = document.getElementById('notes');
     const notes = notesEl ? notesEl.value.trim() : '';
@@ -92,11 +91,10 @@ async function setupPickupPage() {
     if (document.getElementById('itemClothes').checked) items.push('Clothes');
     if (!name || !date) return alert('Name and date required');
     const signature = canvas.toDataURL('image/png');
-  await fetch('/api/pickups/sign', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ name, date, notes, signature, items }) });
-  toast('Saved pickup');
+    await fetch('/api/pickups/sign', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ name, date, notes, signature, items }) });
+    toast('Saved pickup');
     // clear form and return to step1
     document.getElementById('name').value = '';
-  // Address removed
     if (notesEl) notesEl.value = '';
     document.getElementById('itemFood').checked = false;
     document.getElementById('itemHousehold').checked = false;
