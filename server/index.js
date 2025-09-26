@@ -91,13 +91,11 @@ app.get('/api/pickups', async (req, res) => {
 
 app.post('/api/pickups', async (req, res) => {
   const name = validateAndSanitizeInput(req.body.name, 255);
-  const address = validateAndSanitizeInput(req.body.address, 500);
   const date = validateAndSanitizeInput(req.body.date, 20);
   const notes = validateAndSanitizeInput(req.body.notes, 1000);
-  
-  if (!name || !address || !date) return res.status(400).json({ error: 'name, address, date required' });
+  if (!name || !date) return res.status(400).json({ error: 'name and date required' });
   await db.read();
-  const pickup = { id: db.data.nextId++, name, address, date, notes: notes || '' };
+  const pickup = { id: db.data.nextId++, name, date, notes: notes || '' };
   db.data.pickups.push(pickup);
   await db.write();
   res.status(201).json(pickup);
@@ -105,17 +103,15 @@ app.post('/api/pickups', async (req, res) => {
 
 // Create pickup with optional signature
 app.post('/api/pickups/sign', async (req, res) => {
-  // Accepts { name, address, date, notes, signature, items }
+  // Accepts { name, date, notes, signature, items }
   const name = validateAndSanitizeInput(req.body.name, 255);
-  const address = validateAndSanitizeInput(req.body.address, 500);
   const date = validateAndSanitizeInput(req.body.date, 20);
   const notes = validateAndSanitizeInput(req.body.notes, 1000);
   const signature = req.body.signature; // Keep signature as-is (base64 data URL)
   const items = Array.isArray(req.body.items) ? req.body.items.map(item => validateAndSanitizeInput(item, 100)) : [];
-  
   if (!name || !date) return res.status(400).json({ error: 'name and date required' });
   await db.read();
-  const pickup = { id: db.data.nextId++, name, address: address || '', date, notes: notes || '', signature: signature || null, items };
+  const pickup = { id: db.data.nextId++, name, date, notes: notes || '', signature: signature || null, items };
   db.data.pickups.push(pickup);
   await db.write();
   res.status(201).json(pickup);
@@ -133,12 +129,10 @@ app.get('/admin/persons', requireAdmin, async (req, res) => {
 // Admin: Add person (protected)
 app.post('/admin/persons', requireAdmin, async (req, res) => {
   const name = validateAndSanitizeInput(req.body.name, 255);
-  const phone = validateAndSanitizeInput(req.body.phone, 50);
-  const email = validateAndSanitizeInput(req.body.email, 255);
   if (!name) return res.status(400).json({ error: 'name required' });
   await db.read();
   db.data.persons = db.data.persons || [];
-  const person = { id: (db.data.nextPersonId || 1), name, phone: phone || '', email: email || '' };
+  const person = { id: (db.data.nextPersonId || 1), name };
   db.data.nextPersonId = (db.data.nextPersonId || 1) + 1;
   db.data.persons.push(person);
   await db.write();
