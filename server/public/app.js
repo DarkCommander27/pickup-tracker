@@ -27,9 +27,15 @@ function toast(msg, ms = 2500) {
 async function setupPickupPage() {
   // No person select for client UI
 
-  // date autofill
+  // date autofill (MM/DD/YYYY)
   const dateInput = document.getElementById('date');
-  if (dateInput) dateInput.value = new Date().toISOString().slice(0,10);
+  if (dateInput) {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    dateInput.value = `${mm}/${dd}/${yyyy}`;
+  }
 
   // signature canvas
   const canvas = document.getElementById('sig');
