@@ -122,17 +122,19 @@ app.post('/api/pickups/sign', async (req, res) => {
 });
 
 // Persons endpoints
-app.get('/api/persons', async (req, res) => {
+
+// Admin: View people (protected)
+app.get('/admin/persons', requireAdmin, async (req, res) => {
   await db.read();
   res.json(db.data.persons || []);
 });
 
-app.post('/api/persons', async (req, res) => {
+
+// Admin: Add person (protected)
+app.post('/admin/persons', requireAdmin, async (req, res) => {
   const name = validateAndSanitizeInput(req.body.name, 255);
   const phone = validateAndSanitizeInput(req.body.phone, 50);
   const email = validateAndSanitizeInput(req.body.email, 255);
-  const address = validateAndSanitizeInput(req.body.address, 500);
-  
   if (!name) return res.status(400).json({ error: 'name required' });
   await db.read();
   db.data.persons = db.data.persons || [];

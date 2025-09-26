@@ -21,55 +21,11 @@ function toast(msg, ms = 2500) {
   setTimeout(() => { t.style.display = 'none'; }, ms);
 }
 
-// Persons page
-async function loadPeople() {
-  const el = document.getElementById('people');
-  if (!el) return;
-  const people = await api('/api/persons');
-  el.innerHTML = people.map(p => `<div><div><strong>${escapeHtml(p.name)}</strong><div class="small muted">${escapeHtml(p.phone)} ${escapeHtml(p.email)} ${escapeHtml(p.address || '')}</div></div><div><button data-id="${p.id}" class="del secondary">Delete</button></div></div>`).join('');
-  el.innerHTML = people.map(p => `<div><div><strong>${p.name}</strong><div class="small muted">${p.phone} ${p.email}</div></div><div><button data-id="${p.id}" class="del secondary">Delete</button></div></div>`).join('');
-    el.innerHTML = people.map(p => `<div><div><strong>${escapeHtml(p.name)}</strong><div class="small muted">${escapeHtml(p.phone)} ${escapeHtml(p.email)}</div></div><div><button data-id="${p.id}" class="del secondary">Delete</button></div></div>`).join('');
-  el.querySelectorAll('.del').forEach(btn => btn.addEventListener('click', async (e) => {
-    const id = e.target.getAttribute('data-id');
-    await fetch(`/api/persons/${id}`, { method: 'DELETE' });
-    toast('Person deleted');
-    loadPeople();
-  }));
-}
-
-// ...existing code...
-if (personForm) {
-  personForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const email = document.getElementById('email').value.trim();
-  // Address removed
-  await fetch('/api/persons', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ name, phone, email }) });
-    document.getElementById('name').value = '';
-    document.getElementById('phone').value = '';
-    document.getElementById('email').value = '';
-  // Address removed
-    toast('Person added');
-    loadPeople();
-  });
-}
+// Persons page logic removed for client UI. Only admin UI should implement people list and add person.
 
 // Pickup page
 async function setupPickupPage() {
-  const select = document.getElementById('personSelect');
-  if (!select) return;
-  const people = await api('/api/persons');
-  select.innerHTML = '<option value="">-- new person --</option>' + people.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
-  select.addEventListener('change', async (e) => {
-    const id = e.target.value;
-    if (!id) return; // new person
-    const person = people.find(p => String(p.id) === String(id));
-    if (person) {
-      document.getElementById('name').value = person.name;
-  // Address removed
-    }
-  });
+  // No person select for client UI
 
   // date autofill
   const dateInput = document.getElementById('date');
