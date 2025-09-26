@@ -1,3 +1,12 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const { Low } = require('lowdb');
+const { JSONFile } = require('lowdb/node');
+const path = require('path');
+
+const app = express();
+
 // Admin: View client intake submissions (protected)
 app.get('/admin/client-intake', requireAdmin, async (req, res) => {
   await db.read();
@@ -30,14 +39,6 @@ app.post('/api/client-intake', async (req, res) => {
   await db.write();
   res.status(201).json({ ok: true });
 });
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const { Low } = require('lowdb');
-const { JSONFile } = require('lowdb/node');
-const path = require('path');
-
-const app = express();
 app.use(bodyParser.json({limit: '10mb'}));
 app.use(cors());
 
