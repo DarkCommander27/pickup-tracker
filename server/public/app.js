@@ -1,5 +1,13 @@
 const apiBase = window.location.origin;
 
+// HTML escape function to prevent XSS
+function escapeHtml(text) {
+  if (typeof text !== 'string') return text;
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 async function api(path, opts) {
   const res = await fetch(path, opts);
   if (!res.ok) throw new Error('API error ' + res.status);
@@ -18,7 +26,7 @@ async function loadPeople() {
   const el = document.getElementById('people');
   if (!el) return;
   const people = await api('/api/persons');
-  el.innerHTML = people.map(p => `<div><div><strong>${p.name}</strong><div class="small muted">${p.phone} ${p.email} ${p.address || ''}</div></div><div><button data-id="${p.id}" class="del secondary">Delete</button></div></div>`).join('');
+  el.innerHTML = people.map(p => `<div><div><strong>${escapeHtml(p.name)}</strong><div class="small muted">${escapeHtml(p.phone)} ${escapeHtml(p.email)} ${escapeHtml(p.address || '')}</div></div><div><button data-id="${p.id}" class="del secondary">Delete</button></div></div>`).join('');
   el.querySelectorAll('.del').forEach(btn => btn.addEventListener('click', async (e) => {
     const id = e.target.getAttribute('data-id');
     await fetch(`/api/persons/${id}`, { method: 'DELETE' });
@@ -50,7 +58,7 @@ async function setupPickupPage() {
   const select = document.getElementById('personSelect');
   if (!select) return;
   const people = await api('/api/persons');
-  select.innerHTML = '<option value="">-- new person --</option>' + people.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  select.innerHTML = '<option value="">-- new person --</option>' + people.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
   select.addEventListener('change', async (e) => {
     const id = e.target.value;
     if (!id) return; // new person
@@ -139,7 +147,7 @@ async function loadPickupsList() {
   const el = document.getElementById('list');
   if (!el) return;
   const pickups = await api('/api/pickups');
-  el.innerHTML = `<table class="table"><thead><tr><th>Name</th><th>Date</th><th>Items</th><th>Signature</th></tr></thead><tbody>` + pickups.map(p => `<tr><td>${p.name}<div class="small muted">${p.address||''}</div></td><td>${p.date}</td><td>${(p.items||[]).join(', ')}</td><td>${p.signature?`<img class="sig-preview" src="${p.signature}" />`:'-'}</td></tr>`).join('') + `</tbody></table>`;
+  el.innerHTML = `<table class="table"><thead><tr><th>Name</th><th>Date</th><th>Items</th><th>Signature</th></tr></thead><tbody>` + pickups.map(p => `<tr><td>${escapeHtml(p.name)}<div class="small muted">${escapeHtml(p.address||'')}</div></td><td>${escapeHtml(p.date)}</td><td>${escapeHtml((p.items||[]).join(', '))}</td><td>${p.signature?`<img class="sig-preview" src="${escapeHtml(p.signature)}" />`:'-'}</td></tr>`).join('') + `</tbody></table>`;
   // preview click
   el.querySelectorAll('.sig-preview').forEach(img => img.addEventListener('click', (e)=>{
     const w = window.open(''); w.document.write(`<img src="${e.target.src}" style="max-width:100%">`);
