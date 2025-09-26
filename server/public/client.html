@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Client Intake Form</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; }
+      .container { max-width: 400px; margin: 0 auto; }
+      .card { padding: 20px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px #eee; }
+      label { display: block; margin-top: 12px; }
+      input, textarea, button { width: 100%; margin-top: 4px; }
+      button { margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h2>Welcome! Please fill out your information</h2>
+        <form id="clientForm">
+          <label>Name
+            <input id="name" name="name" required />
+          </label>
+          <label>Phone
+            <input id="phone" name="phone" type="tel" />
+          </label>
+          <label>Email
+            <input id="email" name="email" type="email" />
+          </label>
+          <label>Notes
+            <textarea id="notes" name="notes" placeholder="Anything you'd like us to know?"></textarea>
+          </label>
+          <button type="submit">Submit</button>
+        </form>
+        <div id="thanks" style="display:none; margin-top:20px; color:green;">Thank you! Your information has been received.</div>
+      </div>
+    </div>
+    <script>
+      document.getElementById('clientForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const data = {
+          name: document.getElementById('name').value.trim(),
+          phone: document.getElementById('phone').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          notes: document.getElementById('notes').value.trim()
+        };
+        await fetch('/api/client-intake', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        document.getElementById('clientForm').style.display = 'none';
+        document.getElementById('thanks').style.display = 'block';
+      });
+    </script>
+  </body>
+</html>
