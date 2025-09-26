@@ -33,6 +33,7 @@ function requireAdmin(req, res, next) {
   res.status(401).send('unauthorized');
 }
 
+
 // Serve static client files from public/
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -103,7 +104,7 @@ app.post('/api/persons', async (req, res) => {
   if (!name) return res.status(400).json({ error: 'name required' });
   await db.read();
   db.data.persons = db.data.persons || [];
-  const person = { id: (db.data.nextPersonId || 1), name, phone: phone || '', email: email || '', address: address || '' };
+  const person = { id: (db.data.nextPersonId || 1), name, phone: phone || '', email: email || '' };
   db.data.nextPersonId = (db.data.nextPersonId || 1) + 1;
   db.data.persons.push(person);
   await db.write();
@@ -116,7 +117,9 @@ app.put('/api/persons/:id', async (req, res) => {
   db.data.persons = db.data.persons || [];
   const idx = db.data.persons.findIndex(p => p.id === id);
   if (idx === -1) return res.status(404).json({ error: 'not found' });
-  db.data.persons[idx] = Object.assign(db.data.persons[idx], req.body);
+  const updatedData = { ...db.data.persons[idx], ...req.body };
+  delete updatedData.address; // Ensure address is not updated
+  db.data.persons[idx] = updatedData;
   await db.write();
   res.json(db.data.persons[idx]);
 });

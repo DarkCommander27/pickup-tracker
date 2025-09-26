@@ -26,7 +26,11 @@ async function loadPeople() {
   const el = document.getElementById('people');
   if (!el) return;
   const people = await api('/api/persons');
+<<<<<<< HEAD
   el.innerHTML = people.map(p => `<div><div><strong>${escapeHtml(p.name)}</strong><div class="small muted">${escapeHtml(p.phone)} ${escapeHtml(p.email)} ${escapeHtml(p.address || '')}</div></div><div><button data-id="${p.id}" class="del secondary">Delete</button></div></div>`).join('');
+=======
+  el.innerHTML = people.map(p => `<div><div><strong>${p.name}</strong><div class="small muted">${p.phone} ${p.email}</div></div><div><button data-id="${p.id}" class="del secondary">Delete</button></div></div>`).join('');
+>>>>>>> 73c101a (Remove address field from all forms, UI, and backend logic)
   el.querySelectorAll('.del').forEach(btn => btn.addEventListener('click', async (e) => {
     const id = e.target.getAttribute('data-id');
     await fetch(`/api/persons/${id}`, { method: 'DELETE' });
@@ -42,12 +46,12 @@ if (personForm) {
     const name = document.getElementById('name').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const email = document.getElementById('email').value.trim();
-    const address = document.getElementById('address').value.trim();
-    await fetch('/api/persons', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ name, phone, email, address }) });
+  // Address removed
+  await fetch('/api/persons', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ name, phone, email }) });
     document.getElementById('name').value = '';
     document.getElementById('phone').value = '';
     document.getElementById('email').value = '';
-    document.getElementById('address').value = '';
+  // Address removed
     toast('Person added');
     loadPeople();
   });
@@ -65,7 +69,7 @@ async function setupPickupPage() {
     const person = people.find(p => String(p.id) === String(id));
     if (person) {
       document.getElementById('name').value = person.name;
-      document.getElementById('address').value = person.address || '';
+  // Address removed
     }
   });
 
@@ -128,11 +132,11 @@ async function setupPickupPage() {
     if (document.getElementById('itemClothes').checked) items.push('Clothes');
     if (!name || !date) return alert('Name and date required');
     const signature = canvas.toDataURL('image/png');
-  await fetch('/api/pickups/sign', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ name, address, date, notes, signature, items }) });
+  await fetch('/api/pickups/sign', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ name, date, notes, signature, items }) });
   toast('Saved pickup');
     // clear form and return to step1
     document.getElementById('name').value = '';
-    document.getElementById('address').value = '';
+  // Address removed
     if (notesEl) notesEl.value = '';
     document.getElementById('itemFood').checked = false;
     document.getElementById('itemHousehold').checked = false;
@@ -147,7 +151,11 @@ async function loadPickupsList() {
   const el = document.getElementById('list');
   if (!el) return;
   const pickups = await api('/api/pickups');
+<<<<<<< HEAD
   el.innerHTML = `<table class="table"><thead><tr><th>Name</th><th>Date</th><th>Items</th><th>Signature</th></tr></thead><tbody>` + pickups.map(p => `<tr><td>${escapeHtml(p.name)}<div class="small muted">${escapeHtml(p.address||'')}</div></td><td>${escapeHtml(p.date)}</td><td>${escapeHtml((p.items||[]).join(', '))}</td><td>${p.signature?`<img class="sig-preview" src="${escapeHtml(p.signature)}" />`:'-'}</td></tr>`).join('') + `</tbody></table>`;
+=======
+  el.innerHTML = `<table class="table"><thead><tr><th>Name</th><th>Date</th><th>Items</th><th>Signature</th></tr></thead><tbody>` + pickups.map(p => `<tr><td>${p.name}</td><td>${p.date}</td><td>${(p.items||[]).join(', ')}</td><td>${p.signature?`<img class="sig-preview" src="${p.signature}" />`:'-'}</td></tr>`).join('') + `</tbody></table>`;
+>>>>>>> 73c101a (Remove address field from all forms, UI, and backend logic)
   // preview click
   el.querySelectorAll('.sig-preview').forEach(img => img.addEventListener('click', (e)=>{
     const w = window.open(''); w.document.write(`<img src="${e.target.src}" style="max-width:100%">`);
