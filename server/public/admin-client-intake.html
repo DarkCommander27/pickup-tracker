@@ -23,8 +23,7 @@
           <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Phone</th>
-            <th>Email</th>
+            <th>Date</th>
             <th>Notes</th>
             <th>Submitted</th>
           </tr>
@@ -37,7 +36,7 @@
         const res = await fetch('/admin/client-intake');
         const data = await res.json();
         const tbody = document.querySelector('#intakeTable tbody');
-        tbody.innerHTML = data.map(e => `<tr><td>${e.id}</td><td>${e.name}</td><td>${e.phone}</td><td>${e.email}</td><td>${e.notes}</td><td>${e.submitted}</td></tr>`).join('');
+  tbody.innerHTML = data.map(e => `<tr><td>${e.id}</td><td>${e.name}</td><td>${e.date||''}</td><td>${e.notes}</td><td>${e.submitted}</td></tr>`).join('');
       }
       loadIntake();
       document.getElementById('export').onclick = async () => {

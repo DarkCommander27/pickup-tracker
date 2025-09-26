@@ -18,8 +18,8 @@ app.get('/admin/client-intake/export', requireAdmin, async (req, res) => {
   await db.read();
   const data = db.data.clientIntake || [];
   const csv = [
-    'ID,Name,Phone,Email,Notes,Submitted',
-    ...data.map(e => [e.id, e.name, e.phone, e.email, (e.notes||'').replace(/"/g,'""'), e.submitted].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','))
+    'ID,Name,Date,Notes,Submitted',
+    ...data.map(e => [e.id, e.name, e.date, (e.notes||'').replace(/"/g,'""'), e.submitted].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','))
   ].join('\n');
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename="client-intake.csv"');
@@ -28,13 +28,12 @@ app.get('/admin/client-intake/export', requireAdmin, async (req, res) => {
 // Client intake endpoint
 app.post('/api/client-intake', async (req, res) => {
   const name = validateAndSanitizeInput(req.body.name, 255);
-  const phone = validateAndSanitizeInput(req.body.phone, 50);
-  const email = validateAndSanitizeInput(req.body.email, 255);
+  const date = validateAndSanitizeInput(req.body.date, 20);
   const notes = validateAndSanitizeInput(req.body.notes, 1000);
-  if (!name) return res.status(400).json({ error: 'name required' });
+  if (!name || !date) return res.status(400).json({ error: 'name and date required' });
   await db.read();
   db.data.clientIntake = db.data.clientIntake || [];
-  const entry = { id: (db.data.clientIntake.length + 1), name, phone, email, notes, submitted: new Date().toISOString() };
+  const entry = { id: (db.data.clientIntake.length + 1), name, date, notes, submitted: new Date().toISOString() };
   db.data.clientIntake.push(entry);
   await db.write();
   res.status(201).json({ ok: true });

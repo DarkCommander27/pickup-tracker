@@ -22,11 +22,8 @@
           <label>Name
             <input id="name" name="name" required />
           </label>
-          <label>Phone
-            <input id="phone" name="phone" type="tel" />
-          </label>
-          <label>Email
-            <input id="email" name="email" type="email" />
+          <label>Date
+            <input id="date" name="date" type="date" required />
           </label>
           <label>Notes
             <textarea id="notes" name="notes" placeholder="Anything you'd like us to know?"></textarea>
@@ -41,10 +38,11 @@
         e.preventDefault();
         const data = {
           name: document.getElementById('name').value.trim(),
-          phone: document.getElementById('phone').value.trim(),
-          email: document.getElementById('email').value.trim(),
+          date: document.getElementById('date').value,
           notes: document.getElementById('notes').value.trim()
         };
+  // Autofill date field
+  document.getElementById('date').value = new Date().toISOString().slice(0,10);
         await fetch('/api/client-intake', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
