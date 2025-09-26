@@ -27,14 +27,14 @@ function toast(msg, ms = 2500) {
 async function setupPickupPage() {
   // No person select for client UI
 
-  // date autofill (MM/DD/YYYY)
+  // date autofill (YYYY-MM-DD for input type="date")
   const dateInput = document.getElementById('date');
   if (dateInput) {
     const d = new Date();
+    const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    dateInput.value = `${mm}/${dd}/${yyyy}`;
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
   }
 
   // signature canvas
