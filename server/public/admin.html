@@ -15,27 +15,97 @@
           <p class="org-subtitle">Operated by Catholic Charities West Virginia</p>
         </div>
       </div>
-      <div class="card">
+      <div class="card" id="loginCard">
         <h1>Admin Login</h1>
         <form id="login">
           <input id="user" placeholder="username" />
           <input id="pass" placeholder="password" type="password" />
           <button>Login</button>
         </form>
-        <div id="status"></div>
+        <div id="status" class="small muted" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card" id="adminActions" style="display:none">
+        <h1>Admin Dashboard</h1>
+        <p class="small muted" style="margin-top:-4px">Quick access tools</p>
+        <div class="row" style="flex-wrap:wrap; gap:12px; margin:12px 0">
+          <a href="/persons.html"><button type="button">Manage People</button></a>
+          <a href="/pickups.html"><button type="button">View Pickups</button></a>
+          <a href="/client.html"><button type="button">Client Intake Submissions</button></a>
+          <button id="exportPdf" type="button" class="secondary">Export Pickups PDF</button>
+          <button id="exportCsv" type="button" class="secondary">Export Pickups CSV</button>
+          <button id="exportJson" type="button" class="secondary">Export Pickups JSON</button>
+          <button id="logoutBtn" type="button" class="ghost" style="margin-left:auto">Logout</button>
+        </div>
+        <div id="exportStatus" class="small muted"></div>
       </div>
     </div>
     <script>
-      document.getElementById('login').addEventListener('submit', async (e) => {
+      const loginForm = document.getElementById('login');
+      const loginCard = document.getElementById('loginCard');
+      const actions = document.getElementById('adminActions');
+      const statusEl = document.getElementById('status');
+      const exportStatus = document.getElementById('exportStatus');
+
+      loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const user = document.getElementById('user').value;
+        statusEl.textContent = 'Authenticating...';
+        const user = document.getElementById('user').value.trim();
         const pass = document.getElementById('pass').value;
-        const res = await fetch('/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: user, password: pass })});
-        if (res.ok) {
-          document.getElementById('status').textContent = 'Logged in. Use /admin/data or /admin/export/pdf to get data.';
-        } else {
-          document.getElementById('status').textContent = 'Login failed';
+        try {
+          const res = await fetch('/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: user, password: pass })});
+          if (res.ok) {
+            statusEl.textContent = 'Login successful';
+            loginCard.style.display = 'none';
+            actions.style.display = 'block';
+          } else {
+            statusEl.textContent = 'Login failed';
+          }
+        } catch (err) {
+          statusEl.textContent = 'Network error';
         }
+      });
+
+      function triggerDownload(url, filename) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename || '';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>a.remove(), 100);
+      }
+
+      document.getElementById('exportPdf').addEventListener('click', () => {
+        exportStatus.textContent = 'Preparing PDF...';
+        triggerDownload('/admin/export/pdf', 'pickups.pdf');
+        setTimeout(()=> exportStatus.textContent = 'PDF download triggered.', 500);
+      });
+      document.getElementById('exportCsv').addEventListener('click', () => {
+        exportStatus.textContent = 'Preparing CSV...';
+        triggerDownload('/admin/pickups/export', 'pickups.csv');
+        setTimeout(()=> exportStatus.textContent = 'CSV download triggered.', 500);
+      });
+      document.getElementById('exportJson').addEventListener('click', async () => {
+        exportStatus.textContent = 'Fetching JSON...';
+        try {
+          const res = await fetch('/api/export');
+          if (!res.ok) throw new Error('Unauthorized');
+          const data = await res.json();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            triggerDownload(url, 'pickups.json');
+            exportStatus.textContent = 'JSON downloaded.';
+            setTimeout(()=>URL.revokeObjectURL(url), 2000);
+        } catch (err) {
+          exportStatus.textContent = 'Could not export JSON (auth required).';
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await fetch('/admin/logout', { method: 'POST' });
+        actions.style.display = 'none';
+        loginCard.style.display = 'block';
+        statusEl.textContent = 'Logged out.';
       });
     </script>
   </body>

@@ -81,21 +81,47 @@ if (personForm) {
 
 // --- Pickup wizard and signing (client-facing) ---
 async function setupPickupPage() {
-  // If there is a person select (admin-ish), populate from admin persons
-  const select = document.getElementById('personSelect');
-  if (select) {
-    try {
-      const people = await fetchAdmin('/admin/persons');
-      select.innerHTML = '<option value="">-- new person --</option>' + people.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
-      select.addEventListener('change', (e) => {
-        const id = e.target.value;
-        if (!id) return;
-        const person = people.find(p => String(p.id) === String(id));
-        if (person) document.getElementById('name').value = person.name;
-      });
-    } catch (err) {
-      console.warn('Could not load people for select (admin only).');
-    }
+  // Load saved names for autocomplete
+  let savedNames = [];
+  try {
+    const people = await fetch('/api/persons').then(r => r.json());
+    savedNames = people.map(p => p.name);
+  } catch (err) {
+    console.warn('Could not load persons for autocomplete:', err.message);
+  }
+
+  // Setup name autocomplete
+  const nameInput = document.getElementById('name');
+  const autocompleteDiv = document.getElementById('nameAutocomplete');
+  if (nameInput && autocompleteDiv) {
+    nameInput.addEventListener('input', (e) => {
+      const value = e.target.value.toLowerCase();
+      const matches = savedNames.filter(name => name.toLowerCase().includes(value) && value.length > 0);
+      
+      if (matches.length > 0 && value.length > 0) {
+        autocompleteDiv.innerHTML = matches.slice(0, 5).map(name => 
+          `<div class="autocomplete-item" data-name="${escapeHtml(name)}">${escapeHtml(name)}</div>`
+        ).join('');
+        autocompleteDiv.style.display = 'block';
+        
+        // Add click handlers for suggestions
+        autocompleteDiv.querySelectorAll('.autocomplete-item').forEach(item => {
+          item.addEventListener('click', () => {
+            nameInput.value = item.dataset.name;
+            autocompleteDiv.style.display = 'none';
+          });
+        });
+      } else {
+        autocompleteDiv.style.display = 'none';
+      }
+    });
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!nameInput.contains(e.target) && !autocompleteDiv.contains(e.target)) {
+        autocompleteDiv.style.display = 'none';
+      }
+    });
   }
 
   // date autofill: YYYY-MM-DD
@@ -157,6 +183,17 @@ async function setupPickupPage() {
       if (document.getElementById('itemHousehold') && document.getElementById('itemHousehold').checked) items.push('Household Items');
       if (document.getElementById('itemClothes') && document.getElementById('itemClothes').checked) items.push('Clothes');
       if (!name || !date) return alert('Name and date required');
+      
+            // Auto-add new person if it doesn't exist
+      if (!savedNames.includes(name)) {
+        try {
+          await fetch('/api/persons', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ name }) });
+          savedNames.push(name); // Add to local list for future autocomplete
+        } catch (err) {
+          console.warn('Could not auto-add person:', err.message);
+        }
+      }
+      
       const signature = canvas.toDataURL('image/png');
       await fetch('/api/pickups/sign', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ name, date, notes, signature, items }) });
       toast('Saved pickup');

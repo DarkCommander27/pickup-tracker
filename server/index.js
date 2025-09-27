@@ -68,16 +68,23 @@ app.get('/admin/client-intake', requireAdmin, async (req, res) => {
   res.json(db.data.clientIntake || []);
 });
 
-// Admin: Export client intake as CSV (protected)
-app.get('/admin/client-intake/export', requireAdmin, async (req, res) => {
+// Admin: Export pickups as CSV (protected)
+app.get('/admin/pickups/export', requireAdmin, async (req, res) => {
   await db.read();
-  const data = db.data.clientIntake || [];
+  const data = db.data.pickups || [];
   const csv = [
-    'ID,Name,Date,Notes,Submitted',
-    ...data.map(e => [e.id, e.name, e.date, (e.notes||'').replace(/"/g,'""'), e.submitted].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','))
+    'ID,Name,Date,Items,Notes,Has Signature',
+    ...data.map(p => [
+      p.id, 
+      p.name, 
+      p.date, 
+      (p.items || []).join('; '), 
+      (p.notes || '').replace(/"/g,'""'), 
+      p.signature ? 'Yes' : 'No'
+    ].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','))
   ].join('\n');
   res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', 'attachment; filename="client-intake.csv"');
+  res.setHeader('Content-Disposition', 'attachment; filename="pickups.csv"');
   res.send(csv);
 });
 
@@ -130,12 +137,17 @@ app.post('/api/pickups/sign', async (req, res) => {
 
 // Persons endpoints
 
+// Public: Get persons for autocomplete
+app.get('/api/persons', async (req, res) => {
+  await db.read();
+  res.json(db.data.persons || []);
+});
+
 // Admin: View people (protected)
 app.get('/admin/persons', requireAdmin, async (req, res) => {
   await db.read();
   res.json(db.data.persons || []);
 });
-
 
 // Admin: Add person (protected)
 app.post('/admin/persons', requireAdmin, async (req, res) => {
@@ -143,6 +155,23 @@ app.post('/admin/persons', requireAdmin, async (req, res) => {
   if (!name) return res.status(400).json({ error: 'name required' });
   await db.read();
   db.data.persons = db.data.persons || [];
+  const person = { id: (db.data.nextPersonId || 1), name };
+  db.data.nextPersonId = (db.data.nextPersonId || 1) + 1;
+  db.data.persons.push(person);
+  await db.write();
+  res.status(201).json(person);
+});
+
+// Public: Add person (for clients during pickup)
+app.post('/api/persons', async (req, res) => {
+  const name = validateAndSanitizeInput(req.body.name, 255);
+  if (!name) return res.status(400).json({ error: 'name required' });
+  await db.read();
+  db.data.persons = db.data.persons || [];
+  // Check if person already exists
+  const existing = db.data.persons.find(p => p.name.toLowerCase() === name.toLowerCase());
+  if (existing) return res.status(200).json(existing);
+  // Add new person
   const person = { id: (db.data.nextPersonId || 1), name };
   db.data.nextPersonId = (db.data.nextPersonId || 1) + 1;
   db.data.persons.push(person);

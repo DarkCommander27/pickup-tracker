@@ -18,7 +18,6 @@
       <div class="card">
         <div class="toolbar">
           <h1>Pickup Signing</h1>
-          <a href="/"><button class="ghost">Back</button></a>
         </div>
 
         <div class="steps small muted"><div class="step-label">1 — Person</div><div class="step-label">2 — Items</div><div class="step-label">3 — Signature</div></div>
@@ -27,9 +26,9 @@
         <div id="wizard">
           <div class="step" id="step1">
             <h2 class="small muted">Step 1 — Date & Person</h2>
-            <label class="small muted">Picker (select to autofill)</label>
-            <select id="personSelect"><option value="">-- new person --</option></select>
-            <input id="name" placeholder="Name" />
+            <label class="small muted">Name (type to autocomplete from saved names)</label>
+            <input id="name" placeholder="Enter person's name" autocomplete="off" />
+            <div id="nameAutocomplete" class="autocomplete-suggestions"></div>
 
             <input id="date" name="date" type="date" />
             <div style="margin-top:8px"><button id="toStep2">Next: Items</button></div>
