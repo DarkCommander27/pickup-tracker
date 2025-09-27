@@ -1,11 +1,32 @@
 {
-  "name": "nonprofit-pickup-tracker",
-  "version": "0.1.0",
+  "name": "pickup-tracker-app",
+  "version": "1.0.0",
+  "description": "Digital pickup tracker for Loaves and Fishes of Hinton, WV - Catholic Charities West Virginia",
+  "author": "Catholic Charities West Virginia",
+  "license": "Private",
   "private": true,
-  "main": "app/main.js",
+  "main": "server/index.js",
+  "homepage": "http://localhost:3000",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DarkCommander27/pickup-tracker"
+  },
+  "keywords": [
+    "nonprofit",
+    "food-pantry",
+    "pickup-tracker",
+    "digital-signatures",
+    "catholic-charities"
+  ],
   "scripts": {
     "start": "node server/index.js",
-    "start:electron": "electron .",
-    "install:all": "cd server && npm install && cd ../app && npm install"
+    "install:all": "cd server && npm install && cd ../app && npm install",
+    "setup": "npm install && echo 'Setup complete! Run: npm start'",
+    "dev": "npm start",
+    "test": "echo 'Server starting...' && npm start"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
   }
 }
