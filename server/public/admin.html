@@ -3,16 +3,28 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Admin Login</title>
+    <title>Admin Login - Loaves and Fishes</title>
+    <link rel="stylesheet" href="/style.css">
   </head>
   <body>
-    <h1>Admin Login</h1>
-    <form id="login">
-      <input id="user" placeholder="username" />
-      <input id="pass" placeholder="password" type="password" />
-      <button>Login</button>
-    </form>
-    <div id="status"></div>
+    <div class="container">
+      <div class="nonprofit-header">
+        <img src="https://www.ccwva.org/wp-content/uploads/2023/10/cropped-cropped-ccwv-logo-1.png" alt="Catholic Charities West Virginia" class="org-logo" />
+        <div class="org-info">
+          <h1 class="org-name">Loaves and Fishes of Hinton, WV</h1>
+          <p class="org-subtitle">Operated by Catholic Charities West Virginia</p>
+        </div>
+      </div>
+      <div class="card">
+        <h1>Admin Login</h1>
+        <form id="login">
+          <input id="user" placeholder="username" />
+          <input id="pass" placeholder="password" type="password" />
+          <button>Login</button>
+        </form>
+        <div id="status"></div>
+      </div>
+    </div>
     <script>
       document.getElementById('login').addEventListener('submit', async (e) => {
         e.preventDefault();

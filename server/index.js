@@ -7,37 +7,7 @@ const path = require('path');
 
 const app = express();
 
-// Admin: View client intake submissions (protected)
-app.get('/admin/client-intake', requireAdmin, async (req, res) => {
-  await db.read();
-  res.json(db.data.clientIntake || []);
-});
-
-// Admin: Export client intake as CSV (protected)
-app.get('/admin/client-intake/export', requireAdmin, async (req, res) => {
-  await db.read();
-  const data = db.data.clientIntake || [];
-  const csv = [
-    'ID,Name,Date,Notes,Submitted',
-    ...data.map(e => [e.id, e.name, e.date, (e.notes||'').replace(/"/g,'""'), e.submitted].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','))
-  ].join('\n');
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', 'attachment; filename="client-intake.csv"');
-  res.send(csv);
-});
-// Client intake endpoint
-app.post('/api/client-intake', async (req, res) => {
-  const name = validateAndSanitizeInput(req.body.name, 255);
-  const date = validateAndSanitizeInput(req.body.date, 20);
-  const notes = validateAndSanitizeInput(req.body.notes, 1000);
-  if (!name || !date) return res.status(400).json({ error: 'name and date required' });
-  await db.read();
-  db.data.clientIntake = db.data.clientIntake || [];
-  const entry = { id: (db.data.clientIntake.length + 1), name, date, notes, submitted: new Date().toISOString() };
-  db.data.clientIntake.push(entry);
-  await db.write();
-  res.status(201).json({ ok: true });
-});
+// parse JSON bodies early so routes can rely on req.body
 app.use(bodyParser.json({limit: '10mb'}));
 app.use(cors());
 
@@ -62,7 +32,7 @@ function validateAndSanitizeInput(input, maxLength = 1000) {
 
 function requireAdmin(req, res, next) {
   if (req.session && req.session.admin) return next();
-  res.status(401).send('unauthorized');
+  res.status(401).json({ error: 'unauthorized' });
 }
 
 
@@ -83,6 +53,47 @@ async function initDb() {
 }
 
 initDb();
+
+// JSON parse error handler (returns JSON instead of HTML stack)
+app.use((err, req, res, next) => {
+  if (err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'invalid json' });
+  }
+  next(err);
+});
+
+// Admin: View client intake submissions (protected)
+app.get('/admin/client-intake', requireAdmin, async (req, res) => {
+  await db.read();
+  res.json(db.data.clientIntake || []);
+});
+
+// Admin: Export client intake as CSV (protected)
+app.get('/admin/client-intake/export', requireAdmin, async (req, res) => {
+  await db.read();
+  const data = db.data.clientIntake || [];
+  const csv = [
+    'ID,Name,Date,Notes,Submitted',
+    ...data.map(e => [e.id, e.name, e.date, (e.notes||'').replace(/"/g,'""'), e.submitted].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','))
+  ].join('\n');
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="client-intake.csv"');
+  res.send(csv);
+});
+
+// Client intake endpoint
+app.post('/api/client-intake', async (req, res) => {
+  const name = validateAndSanitizeInput(req.body.name, 255);
+  const date = validateAndSanitizeInput(req.body.date, 20);
+  const notes = validateAndSanitizeInput(req.body.notes, 1000);
+  if (!name || !date) return res.status(400).json({ error: 'name and date required' });
+  await db.read();
+  db.data.clientIntake = db.data.clientIntake || [];
+  const entry = { id: (db.data.clientIntake.length + 1), name, date, notes, submitted: new Date().toISOString() };
+  db.data.clientIntake.push(entry);
+  await db.write();
+  res.status(201).json({ ok: true });
+});
 
 app.get('/api/pickups', async (req, res) => {
   await db.read();
@@ -139,7 +150,7 @@ app.post('/admin/persons', requireAdmin, async (req, res) => {
   res.status(201).json(person);
 });
 
-app.put('/api/persons/:id', async (req, res) => {
+app.put('/admin/persons/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await db.read();
   db.data.persons = db.data.persons || [];
@@ -152,7 +163,7 @@ app.put('/api/persons/:id', async (req, res) => {
   res.json(db.data.persons[idx]);
 });
 
-app.delete('/api/persons/:id', async (req, res) => {
+app.delete('/admin/persons/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await db.read();
   db.data.persons = db.data.persons || [];
@@ -262,7 +273,8 @@ app.delete('/api/pickups/:id', async (req, res) => {
   res.json({ deleted: before - db.data.pickups.length });
 });
 
-app.get('/api/export', async (req, res) => {
+// Public JSON export should be restricted to admins
+app.get('/api/export', requireAdmin, async (req, res) => {
   await db.read();
   res.setHeader('Content-Disposition', 'attachment; filename="pickups.json"');
   res.json(db.data.pickups);
