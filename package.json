@@ -20,7 +20,6 @@
   ],
   "scripts": {
     "start": "node server/index.js",
-    "install:all": "cd server && npm install && cd ../app && npm install",
     "setup": "npm install && echo 'Setup complete! Run: npm start'",
     "dev": "npm start",
     "test": "echo 'Server starting...' && npm start"
