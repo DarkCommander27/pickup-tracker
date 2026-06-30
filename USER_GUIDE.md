@@ -1,6 +1,5 @@
 # 📖 Pickup Tracker User Guide
-## Loaves and Fishes of Hinton, WV
-*Catholic Charities West Virginia*
+## Food Pantry Management System
 
 ---
 
@@ -184,8 +183,8 @@ To update the organization name, logo, or contact info:
 
 For technical support or questions about this application:
 
-- **Organization:** Catholic Charities West Virginia
-- **Program:** Loaves and Fishes of Hinton, WV
+- **Organization:** Your Organization Name
+- **Program:** Your Program Name
 - **Documentation:** See README.md for technical details
 
 ---

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 🚀 Pickup Tracker Startup Script
-# For Loaves and Fishes of Hinton, WV
+# Food Pantry Management System
 
 # Colors
 GREEN='\033[0;32m'
@@ -10,8 +10,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo -e "${BLUE}🎯 Starting Pickup Tracker App${NC}"
-echo -e "${BLUE}   Loaves and Fishes of Hinton, WV${NC}"
-echo -e "${BLUE}   Catholic Charities West Virginia${NC}"
+echo -e "${BLUE}   Food Pantry Management System${NC}"
 echo ""
 
 # Check if dependencies are installed

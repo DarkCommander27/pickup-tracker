@@ -1,8 +1,7 @@
 @echo off
 echo.
 echo  🎯 Starting Pickup Tracker App
-echo     Loaves and Fishes of Hinton, WV
-echo     Catholic Charities West Virginia
+echo     Food Pantry Management System
 echo.
 
 REM Check if dependencies are installed

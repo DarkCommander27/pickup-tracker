@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # 🎯 Pickup Tracker Installer
-# For Loaves and Fishes of Hinton, WV (Catholic Charities West Virginia)
+# Food Pantry Management System
 # 
 # Usage: ./install.sh [options]
 # Options:
@@ -29,7 +29,7 @@ SESSION_SECRET="$(head -c 32 /dev/urandom | base64)"
 # Help function
 show_help() {
     echo -e "${BLUE}🎯 Pickup Tracker Installer${NC}"
-    echo -e "${BLUE}For Loaves and Fishes of Hinton, WV${NC}"
+    echo -e "${BLUE}Food Pantry Management System${NC}"
     echo ""
     echo "Usage: $0 [options]"
     echo ""
@@ -61,8 +61,7 @@ done
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo -e "${BLUE}🎯 Installing Pickup Tracker App${NC}"
-echo -e "${BLUE}   Loaves and Fishes of Hinton, WV${NC}"
-echo -e "${BLUE}   Catholic Charities West Virginia${NC}"
+echo -e "${BLUE}   Food Pantry Management System${NC}"
 echo ""
 echo -e "${YELLOW}📁 Install directory: $ROOT_DIR${NC}"
 echo -e "${YELLOW}👤 Run as user: $USER${NC}"

@@ -3,20 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Pickup Tracker - Loaves and Fishes of Hinton, WV</title>
+    <title>Pickup Tracker - Food Pantry Management</title>
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
     <div class="container">
       <div class="nonprofit-header">
-        <img src="https://www.ccwva.org/wp-content/uploads/2023/10/cropped-cropped-ccwv-logo-1.png" alt="Catholic Charities West Virginia" class="org-logo" />
+        <div id="orgLogo" class="org-logo-placeholder">Organization Logo</div>
         <div class="org-info">
-          <h1 class="org-name">Loaves and Fishes of Hinton, WV</h1>
-          <p class="org-subtitle">Operated by Catholic Charities West Virginia</p>
+          <h1 id="orgName" class="org-name">Food Pantry Management</h1>
+          <p id="orgSubtitle" class="org-subtitle">Pickup Tracking System</p>
         </div>
       </div>
       <div class="card">
-        <h1>Pickup Tracker</h1>
+        <h1 id="appTitle">Pickup Tracker</h1>
         <p class="muted">Run this on a laptop and open the pages from tablets on the same local network.</p>
         <div class="row">
           <div class="col"><a href="/persons.html"><button class="secondary">Manage People</button></a></div>
@@ -25,5 +25,22 @@
         </div>
       </div>
     </div>
+    <script>
+      fetch('/api/config')
+        .then(res => res.json())
+        .then(config => {
+          document.title = `${config.app.title} - ${config.organization.name}`;
+          const orgLogo = document.getElementById('orgLogo');
+          if (config.organization.logoUrl) {
+            orgLogo.outerHTML = `<img src="${config.organization.logoUrl}" alt="${config.organization.name}" class="org-logo" />`;
+          } else {
+            orgLogo.textContent = config.organization.logoText;
+          }
+          document.getElementById('orgName').textContent = config.organization.name;
+          document.getElementById('orgSubtitle').textContent = config.organization.subtitle;
+          document.getElementById('appTitle').textContent = config.app.title;
+        })
+        .catch(err => console.error('Failed to load config:', err));
+    </script>
   </body>
 </html>

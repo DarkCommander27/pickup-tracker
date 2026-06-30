@@ -4,8 +4,39 @@ const cors = require('cors');
 const { Low } = require('lowdb');
 const { JSONFile } = require('lowdb/node');
 const path = require('path');
+const fs = require('fs');
+require('dotenv').config();
 
 const app = express();
+
+// Load configuration
+let config = {
+  organization: {
+    name: "Food Pantry Management",
+    subtitle: "Pickup Tracking System",
+    logoUrl: "",
+    logoText: "Organization Logo"
+  },
+  app: {
+    title: "Pickup Tracker",
+    port: 3000
+  },
+  items: ["Food", "Household Items", "Clothes"],
+  demo: {
+    enabled: false,
+    loadSampleData: false
+  }
+};
+
+const configPath = path.join(__dirname, 'config.json');
+if (fs.existsSync(configPath)) {
+  try {
+    const configData = fs.readFileSync(configPath, 'utf8');
+    config = { ...config, ...JSON.parse(configData) };
+  } catch (err) {
+    console.warn('Could not load config.json, using defaults');
+  }
+}
 
 // parse JSON bodies early so routes can rely on req.body
 app.use(bodyParser.json({limit: '10mb'}));
@@ -24,6 +55,12 @@ const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'password';
 const ADMIN_HASH = bcrypt.hashSync(ADMIN_PASS, 8);
 
+// Warn if using default credentials
+if (process.env.NODE_ENV === 'production' && ADMIN_PASS === 'password') {
+  console.warn('⚠️  WARNING: Using default admin password in production!');
+  console.warn('⚠️  Please set ADMIN_PASS environment variable to a secure password.');
+}
+
 // Input validation and sanitization
 function validateAndSanitizeInput(input, maxLength = 1000) {
   if (typeof input !== 'string') return '';
@@ -39,6 +76,16 @@ function requireAdmin(req, res, next) {
 // Serve static client files from public/
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serve configuration to frontend
+app.get('/api/config', (req, res) => {
+  res.json(config);
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 const dbFile = path.join(__dirname, 'db.json');
 const adapter = new JSONFile(dbFile);
 const defaultData = { pickups: [], nextId: 1 };
@@ -49,6 +96,31 @@ async function initDb() {
   db.data = db.data || { pickups: [], nextId: 1 };
   db.data.persons = db.data.persons || [];
   db.data.nextPersonId = db.data.nextPersonId || 1;
+  
+  // Load sample data if enabled and database is empty
+  if (config.demo.loadSampleData && db.data.pickups.length === 0) {
+    console.log('Loading sample data...');
+    db.data.persons = [
+      { id: 1, name: 'John Smith' },
+      { id: 2, name: 'Mary Johnson' },
+      { id: 3, name: 'Robert Davis' },
+      { id: 4, name: 'Lisa Wilson' },
+      { id: 5, name: 'Michael Brown' }
+    ];
+    db.data.nextPersonId = 6;
+    
+    const today = new Date().toISOString().slice(0, 10);
+    db.data.pickups = [
+      { id: 1, name: 'John Smith', date: today, notes: 'First visit', items: ['Food', 'Household Items'], signature: null },
+      { id: 2, name: 'Mary Johnson', date: today, notes: 'Regular client', items: ['Food'], signature: null },
+      { id: 3, name: 'Robert Davis', date: today, notes: '', items: ['Clothes'], signature: null }
+    ];
+    db.data.nextId = 4;
+    
+    await db.write();
+    console.log('Sample data loaded successfully');
+  }
+  
   await db.write();
 }
 

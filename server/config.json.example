@@ -1,0 +1,21 @@
+{
+  "organization": {
+    "name": "Your Organization Name",
+    "subtitle": "Your Tagline or Description",
+    "logoUrl": "",
+    "logoText": "Organization Logo"
+  },
+  "app": {
+    "title": "Pickup Tracker",
+    "port": 3000
+  },
+  "items": [
+    "Food",
+    "Household Items",
+    "Clothes"
+  ],
+  "demo": {
+    "enabled": false,
+    "loadSampleData": false
+  }
+}

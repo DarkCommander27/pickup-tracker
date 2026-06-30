@@ -11,7 +11,11 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Configuration (may contain sensitive organization data)
+server/config.json
+
 # Database (development/test data)
+server/db.json
 db.json
 
 # Logs

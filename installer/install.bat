@@ -1,8 +1,7 @@
 @echo off
 echo.
 echo  🎯 Pickup Tracker App Installer
-echo     Loaves and Fishes of Hinton, WV
-echo     Catholic Charities West Virginia
+echo     Food Pantry Management System
 echo.
 
 REM Check if Node.js is installed
