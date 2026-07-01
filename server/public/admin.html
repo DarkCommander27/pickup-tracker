@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Admin Login - Pickup Tracker</title>
+    <title>Admin Login</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
@@ -15,32 +16,78 @@
           <p id="orgSubtitle" class="org-subtitle">Pickup Tracking System</p>
         </div>
       </div>
+
+      <div class="top-bar">
+        <a href="/" class="back-link">&#8592; Back to Home</a>
+      </div>
+
       <div class="card" id="loginCard">
         <h1>Admin Login</h1>
+        <p class="field-hint">Ask your coordinator for the username and password.</p>
         <form id="login">
-          <input id="user" placeholder="username" />
-          <input id="pass" placeholder="password" type="password" />
-          <button>Login</button>
+          <input id="user" placeholder="Username" />
+          <input id="pass" placeholder="Password" type="password" />
+          <button class="btn-primary">Log In</button>
         </form>
-        <div id="status" class="small muted" style="margin-top:8px"></div>
+        <div id="status" class="field-hint" style="margin-top:10px;text-align:center"></div>
       </div>
 
       <div class="card" id="adminActions" style="display:none">
-        <h1>Admin Dashboard</h1>
-        <p class="small muted" style="margin-top:-4px">Quick access tools</p>
-        <div class="row" style="flex-wrap:wrap; gap:12px; margin:12px 0">
-          <a href="/persons.html"><button type="button">Manage People</button></a>
-          <a href="/pickups.html"><button type="button">View Pickups</button></a>
-          <a href="/client.html"><button type="button">Client Intake Submissions</button></a>
-          <button id="exportPdf" type="button" class="secondary">Export Pickups PDF</button>
-          <button id="exportCsv" type="button" class="secondary">Export Pickups CSV</button>
-          <button id="exportJson" type="button" class="secondary">Export Pickups JSON</button>
-          <button id="logoutBtn" type="button" class="ghost" style="margin-left:auto">Logout</button>
+        <div class="toolbar">
+          <h1>Admin Dashboard</h1>
         </div>
-        <div id="exportStatus" class="small muted"></div>
+
+        <div class="admin-section">
+          <h3>Records</h3>
+          <div class="admin-grid">
+            <a href="/pickups.html" class="admin-btn">View All Pickups</a>
+            <a href="/client.html" class="admin-btn">Client Intake Forms</a>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <h3>People</h3>
+          <div class="admin-grid">
+            <a href="/persons.html" class="admin-btn">Manage People</a>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <h3>Customize</h3>
+          <div class="admin-grid">
+            <a href="/settings.html" class="admin-btn">Organization Settings</a>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <h3>Export Data</h3>
+          <div class="admin-grid">
+            <button id="exportPdf" class="admin-btn">Download PDF Report</button>
+            <button id="exportCsv" class="admin-btn">Download CSV Spreadsheet</button>
+            <button id="exportJson" class="admin-btn">Download JSON Backup</button>
+          </div>
+          <div id="exportStatus" class="field-hint"></div>
+        </div>
+
+        <div class="admin-section" style="border:none">
+          <div class="admin-grid">
+            <button id="clearData" class="btn-ghost" style="color:var(--danger);border-color:rgba(224,36,36,0.2)">Delete All Data</button>
+          </div>
+        </div>
+
+        <div class="admin-section" style="border:none;margin-bottom:0">
+          <button id="logoutBtn" class="btn-ghost">Log Out</button>
+        </div>
       </div>
     </div>
+    <div id="toast" class="toast"></div>
     <script>
+      function toast(msg) {
+        const t = document.getElementById('toast');
+        if (!t) return;
+        t.textContent = msg; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+      }
       const loginForm = document.getElementById('login');
       const loginCard = document.getElementById('loginCard');
       const actions = document.getElementById('adminActions');
@@ -49,20 +96,20 @@
 
       loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        statusEl.textContent = 'Authenticating...';
+        statusEl.textContent = 'Please wait...';
         const user = document.getElementById('user').value.trim();
         const pass = document.getElementById('pass').value;
         try {
           const res = await fetch('/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: user, password: pass })});
           if (res.ok) {
-            statusEl.textContent = 'Login successful';
+            statusEl.textContent = '';
             loginCard.style.display = 'none';
             actions.style.display = 'block';
           } else {
-            statusEl.textContent = 'Login failed';
+            statusEl.textContent = 'Incorrect username or password. Try again.';
           }
         } catch (err) {
-          statusEl.textContent = 'Network error';
+          statusEl.textContent = 'Could not connect to server.';
         }
       });
 
@@ -78,15 +125,15 @@
       document.getElementById('exportPdf').addEventListener('click', () => {
         exportStatus.textContent = 'Preparing PDF...';
         triggerDownload('/admin/export/pdf', 'pickups.pdf');
-        setTimeout(()=> exportStatus.textContent = 'PDF download triggered.', 500);
+        setTimeout(()=> exportStatus.textContent = 'PDF download started.', 1500);
       });
       document.getElementById('exportCsv').addEventListener('click', () => {
         exportStatus.textContent = 'Preparing CSV...';
         triggerDownload('/admin/pickups/export', 'pickups.csv');
-        setTimeout(()=> exportStatus.textContent = 'CSV download triggered.', 500);
+        setTimeout(()=> exportStatus.textContent = 'CSV download started.', 1500);
       });
       document.getElementById('exportJson').addEventListener('click', async () => {
-        exportStatus.textContent = 'Fetching JSON...';
+        exportStatus.textContent = 'Fetching data...';
         try {
           const res = await fetch('/api/export');
           if (!res.ok) throw new Error('Unauthorized');
@@ -94,10 +141,22 @@
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             triggerDownload(url, 'pickups.json');
-            exportStatus.textContent = 'JSON downloaded.';
+            exportStatus.textContent = 'JSON download started.';
             setTimeout(()=>URL.revokeObjectURL(url), 2000);
         } catch (err) {
-          exportStatus.textContent = 'Could not export JSON (auth required).';
+          exportStatus.textContent = 'Could not export. Try logging in again.';
+        }
+      });
+
+      document.getElementById('clearData').addEventListener('click', async () => {
+        if (!confirm('Delete ALL pickup records and people? This cannot be undone.')) return;
+        if (!confirm('Are you sure? All data will be permanently removed.')) return;
+        try {
+          await fetch('/admin/clear-data', { method: 'POST' });
+          toast('All data cleared. Starting fresh.');
+          setTimeout(() => location.reload(), 1500);
+        } catch (err) {
+          toast('Could not clear data.');
         }
       });
 
@@ -105,17 +164,21 @@
         await fetch('/admin/logout', { method: 'POST' });
         actions.style.display = 'none';
         loginCard.style.display = 'block';
-        statusEl.textContent = 'Logged out.';
+        statusEl.textContent = 'Logged out successfully.';
       });
 
-      // Load configuration
       fetch('/api/config')
         .then(res => res.json())
         .then(config => {
-          document.title = `Admin Login - ${config.app.title}`;
+          document.title = `Admin - ${config.app.title}`;
           const orgLogo = document.getElementById('orgLogo');
           if (config.organization.logoUrl) {
-            orgLogo.outerHTML = `<img src="${config.organization.logoUrl}" alt="${config.organization.name}" class="org-logo" />`;
+            const img = document.createElement('img');
+              img.src = config.organization.logoUrl;
+              img.alt = config.organization.name;
+              img.className = 'org-logo';
+              img.onerror = function(){this.style.display='none'};
+              orgLogo.parentNode.replaceChild(img, orgLogo);
           } else {
             orgLogo.textContent = config.organization.logoText;
           }

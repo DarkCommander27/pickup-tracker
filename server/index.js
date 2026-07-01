@@ -5,7 +5,7 @@ const { Low } = require('lowdb');
 const { JSONFile } = require('lowdb/node');
 const path = require('path');
 const fs = require('fs');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 
@@ -44,7 +44,7 @@ app.use(cors());
 
 // sessions for admin
 const session = require('express-session');
-app.use(session({ secret: process.env.SESSION_SECRET || 'change-this-secret', resave: false, saveUninitialized: false }));
+app.use(session({ secret: process.env.SESSION_SECRET || 'change-this-secret', resave: false, saveUninitialized: false, cookie: { maxAge: 8 * 60 * 60 * 1000 } }));
 const bcrypt = require('bcryptjs');
 const PDFDocument = require('pdfkit');
 
@@ -56,8 +56,8 @@ const ADMIN_PASS = process.env.ADMIN_PASS || 'password';
 const ADMIN_HASH = bcrypt.hashSync(ADMIN_PASS, 8);
 
 // Warn if using default credentials
-if (process.env.NODE_ENV === 'production' && ADMIN_PASS === 'password') {
-  console.warn('⚠️  WARNING: Using default admin password in production!');
+if (ADMIN_PASS === 'password') {
+  console.warn('⚠️  WARNING: Using default admin password!');
   console.warn('⚠️  Please set ADMIN_PASS environment variable to a secure password.');
 }
 
@@ -81,6 +81,43 @@ app.get('/api/config', (req, res) => {
   res.json(config);
 });
 
+// Admin: Get/update settings (protected)
+app.get('/admin/settings', requireAdmin, (req, res) => {
+  res.json(config);
+});
+
+app.put('/admin/settings', requireAdmin, async (req, res) => {
+  const allowedKeys = ['organization', 'app', 'items'];
+  for (const key of allowedKeys) {
+    if (req.body[key] !== undefined) {
+      if (key === 'organization') {
+        config.organization = {
+          name: String(req.body.organization.name || '').trim() || config.organization.name,
+          subtitle: String(req.body.organization.subtitle || '').trim() || config.organization.subtitle,
+          logoUrl: String(req.body.organization.logoUrl || '').trim(),
+          logoText: String(req.body.organization.logoText || '').trim() || config.organization.logoText
+        };
+      } else if (key === 'app') {
+        config.app.title = String(req.body.app.title || '').trim() || config.app.title;
+      } else if (key === 'items') {
+        config.items = Array.isArray(req.body.items) ? req.body.items.filter(Boolean).map(i => String(i).trim()) : config.items;
+        if (config.items.length === 0) config.items = ['Food'];
+      }
+    }
+  }
+  try {
+    const output = {
+      organization: config.organization,
+      app: { title: config.app.title, port: config.app.port },
+      items: config.items
+    };
+    fs.writeFileSync(configPath, JSON.stringify(output, null, 2));
+    res.json({ ok: true, config });
+  } catch (err) {
+    res.status(500).json({ error: 'could not save settings' });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
@@ -97,8 +134,8 @@ async function initDb() {
   db.data.persons = db.data.persons || [];
   db.data.nextPersonId = db.data.nextPersonId || 1;
   
-  // Load sample data if enabled and database is empty
-  if (config.demo.loadSampleData && db.data.pickups.length === 0) {
+  // Load sample data on first run so new users see a working app immediately
+  if (db.data.pickups.length === 0 && db.data.persons.length === 0) {
     console.log('Loading sample data...');
     db.data.persons = [
       { id: 1, name: 'John Smith' },
@@ -124,8 +161,6 @@ async function initDb() {
   await db.write();
 }
 
-initDb();
-
 // JSON parse error handler (returns JSON instead of HTML stack)
 app.use((err, req, res, next) => {
   if (err && err.type === 'entity.parse.failed') {
@@ -140,20 +175,49 @@ app.get('/admin/client-intake', requireAdmin, async (req, res) => {
   res.json(db.data.clientIntake || []);
 });
 
+// Admin: Export client intake as CSV (protected)
+app.get('/admin/client-intake/export', requireAdmin, async (req, res) => {
+  await db.read();
+  const data = db.data.clientIntake || [];
+  function csvSafe(val) {
+    let s = String(val);
+    if (/^[=+\-@]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
+  const csv = [
+    'ID,Name,Date,Notes,Submitted',
+    ...data.map(e => [
+      csvSafe(e.id),
+      csvSafe(e.name),
+      csvSafe(e.date || ''),
+      csvSafe(e.notes || ''),
+      csvSafe(e.submitted || '')
+    ].join(','))
+  ].join('\n');
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="client-intake.csv"');
+  res.send(csv);
+});
+
 // Admin: Export pickups as CSV (protected)
 app.get('/admin/pickups/export', requireAdmin, async (req, res) => {
   await db.read();
   const data = db.data.pickups || [];
+  function csvSafe(val) {
+    let s = String(val);
+    if (/^[=+\-@]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
   const csv = [
     'ID,Name,Date,Items,Notes,Has Signature',
     ...data.map(p => [
-      p.id, 
-      p.name, 
-      p.date, 
-      (p.items || []).join('; '), 
-      (p.notes || '').replace(/"/g,'""'), 
-      p.signature ? 'Yes' : 'No'
-    ].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','))
+      csvSafe(p.id), 
+      csvSafe(p.name), 
+      csvSafe(p.date), 
+      csvSafe((p.items || []).join('; ')), 
+      csvSafe(p.notes || ''), 
+      csvSafe(p.signature ? 'Yes' : 'No')
+    ].join(','))
   ].join('\n');
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename="pickups.csv"');
@@ -354,18 +418,19 @@ app.get('/admin/export/pdf/:id', requireAdmin, async (req, res) => {
   doc.end();
 });
 
-app.put('/api/pickups/:id', async (req, res) => {
+app.put('/api/pickups/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await db.read();
   const idx = db.data.pickups.findIndex(p => p.id === id);
   if (idx === -1) return res.status(404).json({ error: 'not found' });
-  const updated = Object.assign(db.data.pickups[idx], req.body);
+  const updated = { ...db.data.pickups[idx], ...req.body };
+  updated.id = db.data.pickups[idx].id;
   db.data.pickups[idx] = updated;
   await db.write();
   res.json(updated);
 });
 
-app.delete('/api/pickups/:id', async (req, res) => {
+app.delete('/api/pickups/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await db.read();
   const before = db.data.pickups.length;
@@ -381,7 +446,26 @@ app.get('/api/export', requireAdmin, async (req, res) => {
   res.json(db.data.pickups);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server listening on http://0.0.0.0:${PORT}`);
+// Admin: Clear all data (protected)
+app.post('/admin/clear-data', requireAdmin, async (req, res) => {
+  await db.read();
+  db.data = { pickups: [], nextId: 1, persons: [], nextPersonId: 1, clientIntake: [] };
+  await db.write();
+  res.json({ ok: true });
+});
+
+initDb().then(() => {
+  const PORT = process.env.PORT || config.app.port || 3000;
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server listening on http://0.0.0.0:${PORT}`);
+  });
+
+  // Graceful shutdown
+  process.on('SIGINT', () => {
+    console.log('\nShutting down...');
+    server.close(() => process.exit(0));
+  });
+}).catch(err => {
+  console.error('Failed to initialize database:', err);
+  process.exit(1);
 });

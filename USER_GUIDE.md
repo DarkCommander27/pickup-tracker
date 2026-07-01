@@ -1,106 +1,69 @@
-# 📖 Pickup Tracker User Guide
-## Food Pantry Management System
+# Pickup Tracker User Guide
 
----
-
-## 🎯 Quick Setup Guide
+## Quick Start
 
 ### For Windows Users
-1. **Download** the pickup-tracker folder to your computer
-2. **Double-click** `installer/install.bat` to install
-3. **Double-click** `start.bat` to run the app
-4. **Open browser** to http://localhost:3000
+1. **Double-click** `start.bat` to install and run the app
+2. **Open browser** to http://localhost:3000
 
 ### For Mac/Linux Users
-1. **Download** the pickup-tracker folder to your computer
-2. **Open Terminal** and navigate to the folder
-3. **Run:** `./installer/install.sh` to install
-4. **Run:** `./start.sh` to start the app
-5. **Open browser** to http://localhost:3000
+1. **Open Terminal** in the app folder
+2. **Run:** `bash start.sh`
+3. **Open browser** to http://localhost:3000
+
+On first run you'll be asked to set a username and password.
 
 ---
 
-## 👥 User Roles
-
-### 📝 **Clients (People picking up food)**
-- Can sign pickup forms
-- Names are automatically saved for future visits
-- No login required
-
-### 🔐 **Administrators (Staff)**
-- Can view all pickup records
-- Can manage people in the system
-- Can export reports (PDF/CSV)
-- Requires login
-
----
-
-## 🖥️ How to Use - Step by Step
+## How to Use - Step by Step
 
 ### For Clients (Pickup Process)
 
 1. **Start Pickup**
-   - Click "Sign Pickup" on the main page
-   - You'll see a 3-step wizard
+   - Click "Sign a Pickup" on the main page
 
-2. **Step 1: Enter Information**
+2. **Step 1: Who is coming?**
    - Type your name (suggestions will appear if you've visited before)
-   - Date will be filled automatically
-   - Add any notes if needed
-   - Click "Next"
+   - Date is filled automatically
+   - Click "Next: Items Received"
 
-3. **Step 2: Select Items**
-   - Check boxes for items you're picking up:
-     - Food
-     - Household items  
-     - Clothes
-   - Click "Next"
+3. **Step 2: What did they receive?**
+   - Check boxes for items being picked up
+   - Add optional notes about the visit
+   - Click "Next: Signature"
 
-4. **Step 3: Sign**
-   - Sign with your finger/stylus on the gray box
-   - Use "Clear" to start over if needed
-   - Click "Save Pickup" when done
+4. **Step 3: Sign here**
+   - Sign with your finger or stylus on the gray box
+   - Tap "Clear & Try Again" to start over
+   - Tap "Save Pickup" when done
 
 5. **Complete**
-   - You'll see a success message
-   - Your name is now saved for faster future visits
+   - A success message appears
+   - Tap "Record Another Pickup" for the next person
 
 ### For Administrators
 
-1. **Login**
-   - Go to `/admin.html` in your browser
-   - Enter username and password
-   - Default: admin / password
+1. **Log in**
+   - From the home page, click "Admin Area"
+   - Enter the username and password set during first run
 
-2. **Admin Dashboard Options**
-   - **Manage People** - Add, edit, or remove people
-   - **View Pickups** - See all pickup records with signatures
-   - **Export Pickups PDF** - Download formatted report
-   - **Export Pickups CSV** - Download spreadsheet data
-   - **Export Pickups JSON** - Download raw data
-
-3. **Managing People**
-   - Add new people manually if needed
-   - Edit existing names
-   - Delete people who no longer visit
-
-4. **Viewing Pickup Records**
-   - See chronological list of all pickups
-   - View signatures by clicking on them
-   - Filter and search as needed
+2. **Admin Dashboard**
+   - **View All Pickups** - See all records with signatures (click a signature to enlarge)
+   - **Manage People** - Add or remove people from the list
+   - **Organization Settings** - Change your org name, logo, pickup items
+   - **Download PDF/CSV/JSON** - Export your data
+   - **Delete All Data** - Start fresh (requires two confirmations)
 
 ---
 
-## 🌐 Network Setup (Multiple Devices)
+## Network Setup (Multiple Devices)
 
-### Using Tablets for Pickup Signing
-
-If you want to use tablets or phones for the pickup process:
+To use tablets or phones for the pickup process:
 
 1. **Connect all devices to the same WiFi network**
 2. **Find your computer's IP address:**
    - Windows: Open Command Prompt, type `ipconfig`
-   - Mac: System Preferences > Network
+   - Mac: System Settings > Network
    - Linux: Type `ip addr` in terminal
 
 3. **On tablets/phones, open browser to:**
@@ -111,93 +74,42 @@ If you want to use tablets or phones for the pickup process:
 
 ---
 
-## 🔧 Configuration & Customization
+## Changing Password
 
-### Changing Admin Password
-
-**Important:** Change the default password before using in production!
-
-1. **Edit** `server/index.js`
-2. **Find** these lines:
-   ```javascript
-   const ADMIN_USER = 'admin';
-   const ADMIN_HASH = bcrypt.hashSync('password', 10);
-   ```
-3. **Change** 'password' to your new password
-4. **Restart** the server
-
-### Changing Organization Branding
-
-To update the organization name, logo, or contact info:
-
-1. **Edit** the HTML files in `server/public/`
-2. **Update** the nonprofit-header section in each file
-3. **Change** logo URL, organization name, and subtitle
+Run `bash start.sh --setup` (Mac/Linux) or `start.bat --setup` (Windows) and enter a new password.
 
 ---
 
-## 📊 Reports & Data Export
+## Reports & Data Export
 
-### PDF Reports
-- Formatted reports with signatures
-- Good for printing and filing
-- Includes all pickup details
+- **PDF** - Formatted report with signatures, good for printing
+- **CSV** - Spreadsheet format for Excel or Google Sheets
+- **JSON** - Raw data backup for developers
 
-### CSV Exports  
-- Spreadsheet format for analysis
-- Import into Excel or Google Sheets
-- Columns: ID, Name, Date, Items, Notes, Has Signature
-
-### JSON Exports
-- Raw data format for developers
-- Complete backup of all data
-- Can be imported into other systems
+All exports are available from the Admin Dashboard.
 
 ---
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### App Won't Start
-- **Check:** Is Node.js installed? Run `node --version`
-- **Try:** Re-run the installer
-- **Check:** Is port 3000 already in use?
+- Make sure Node.js is installed from https://nodejs.org (click the LTS button)
+- Close and reopen your terminal, then try again
 
 ### Can't Access from Tablet
-- **Check:** Are all devices on same WiFi?
-- **Check:** Is the computer running the server?
-- **Try:** Disable firewall temporarily
-- **Check:** Use the correct IP address
-
-### Signatures Not Appearing
-- **Check:** Is JavaScript enabled in browser?
-- **Try:** Refresh the page
-- **Check:** Use a modern browser (Chrome, Firefox, Safari, Edge)
+- Are all devices on the same WiFi?
+- Is the computer running the server?
+- Use the correct IP address shown in the startup message
 
 ### Lost Admin Password
-- **Edit** `server/index.js` and reset the password
-- **Restart** the server
+- Run `bash start.sh --setup` (Mac/Linux) or `start.bat --setup` (Windows) to set a new one
 
 ---
 
-## 📞 Support
+## Tips for Success
 
-For technical support or questions about this application:
-
-- **Organization:** Your Organization Name
-- **Program:** Your Program Name
-- **Documentation:** See README.md for technical details
-
----
-
-## 🎉 Tips for Success
-
-1. **Test thoroughly** before first use
-2. **Train volunteers** on the pickup process
-3. **Have backup paper forms** ready
-4. **Export data regularly** for safekeeping
-5. **Keep tablets charged** and ready
-6. **Use a reliable WiFi connection**
-
----
-
-*This guide covers the essential functions of the Pickup Tracker app. For advanced configuration and development information, see the technical documentation in README.md.*
+1. **Test with a few volunteers** before using with clients
+2. **Have backup paper forms** ready in case of technical issues
+3. **Export data regularly** for safekeeping
+4. **Keep tablets charged** and ready
+5. **Use a reliable WiFi connection**

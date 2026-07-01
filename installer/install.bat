@@ -17,13 +17,15 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo ✅ Node.js found: 
+echo ✅ Node.js found:
 node --version
 
-REM Install dependencies
+REM Install server dependencies
 echo.
-echo 📦 Installing dependencies...
+echo 📦 Installing server dependencies...
+pushd "%~dp0..\server"
 call npm install
+popd
 if %errorlevel% neq 0 (
     echo ❌ Failed to install dependencies
     pause
@@ -33,15 +35,8 @@ if %errorlevel% neq 0 (
 echo.
 echo ✅ Installation complete!
 echo.
-echo 🚀 To start the server:
-echo    npm start
+echo 🚀 To start the server, double-click start.bat
 echo.
 echo 🌐 Then open your browser to: http://localhost:3000
-echo.
-echo 🔐 Default admin login:
-echo    Username: admin
-echo    Password: password
-echo.
-echo ⚠️  IMPORTANT: Change the admin password in production!
 echo.
 pause

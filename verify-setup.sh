@@ -17,18 +17,8 @@ NODE_VERSION=$(node --version)
 echo "✅ Node.js installed: $NODE_VERSION"
 echo ""
 
-# Check dependencies
-echo "[2/5] Checking dependencies..."
-if [ ! -d "node_modules" ]; then
-    echo "❌ Dependencies not installed"
-    echo "Run: npm install"
-    exit 1
-fi
-echo "✅ Dependencies installed"
-echo ""
-
 # Check server directory
-echo "[3/5] Checking server directory..."
+echo "[2/5] Checking server directory..."
 if [ ! -d "server" ]; then
     echo "❌ Server directory not found"
     exit 1
@@ -37,18 +27,25 @@ echo "✅ Server directory exists"
 echo ""
 
 # Check server dependencies
-echo "[4/5] Checking server dependencies..."
+echo "[3/5] Checking server dependencies..."
 if [ ! -d "server/node_modules" ]; then
-    echo "❌ Server dependencies not installed"
-    cd server
-    npm install
-    cd ..
+    echo "📦 Installing server dependencies..."
+    (cd server && npm install)
     if [ $? -ne 0 ]; then
         echo "❌ Failed to install server dependencies"
         exit 1
     fi
 fi
 echo "✅ Server dependencies installed"
+echo ""
+
+# Check .env file
+echo "[4/5] Checking configuration..."
+if [ ! -f ".env" ]; then
+    echo "⚠️  No .env file found — using default credentials"
+else
+    echo "✅ Configuration file found"
+fi
 echo ""
 
 # Test server startup (quick check)

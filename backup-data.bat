@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 echo.
 echo ========================================
 echo   Pickup Tracker Data Backup

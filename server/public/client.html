@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Client Intake - Pickup Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
@@ -14,6 +15,9 @@
           <h1 id="orgName" class="org-name">Food Pantry Management</h1>
           <p id="orgSubtitle" class="org-subtitle">Pickup Tracking System</p>
         </div>
+      </div>
+      <div class="top-bar">
+        <a href="/" class="back-link">&#8592; Back to Home</a>
       </div>
       <div class="card">
         <h2>Welcome! Please fill out your information</h2>
@@ -27,12 +31,15 @@
           <label>Notes
             <textarea id="notes" name="notes" placeholder="Anything you'd like us to know?"></textarea>
           </label>
-          <button type="submit">Submit</button>
+          <button type="submit" class="btn-primary">Submit</button>
         </form>
         <div id="thanks" style="display:none; margin-top:20px; color:green;">Thank you! Your information has been received.</div>
       </div>
     </div>
     <script>
+      // Autofill date on load
+      document.getElementById('date').value = new Date().toISOString().slice(0,10);
+
       document.getElementById('clientForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const data = {
@@ -40,8 +47,6 @@
           date: document.getElementById('date').value,
           notes: document.getElementById('notes').value.trim()
         };
-  // Autofill date field
-  document.getElementById('date').value = new Date().toISOString().slice(0,10);
         await fetch('/api/client-intake', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -58,7 +63,12 @@
           document.title = `Client Intake - ${config.app.title}`;
           const orgLogo = document.getElementById('orgLogo');
           if (config.organization.logoUrl) {
-            orgLogo.outerHTML = `<img src="${config.organization.logoUrl}" alt="${config.organization.name}" class="org-logo" />`;
+            const img = document.createElement('img');
+              img.src = config.organization.logoUrl;
+              img.alt = config.organization.name;
+              img.className = 'org-logo';
+              img.onerror = function(){this.style.display='none'};
+              orgLogo.parentNode.replaceChild(img, orgLogo);
           } else {
             orgLogo.textContent = config.organization.logoText;
           }

@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Settings</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="nonprofit-header">
+        <div id="orgLogo" class="org-logo-placeholder">Organization Logo</div>
+        <div class="org-info">
+          <h1 id="orgName" class="org-name">Food Pantry Management</h1>
+          <p id="orgSubtitle" class="org-subtitle">Pickup Tracking System</p>
+        </div>
+      </div>
+
+      <div class="top-bar">
+        <a href="/admin.html" class="back-link">&#8592; Back to Admin</a>
+      </div>
+
+      <div class="card" id="loginCard">
+        <h1>Settings</h1>
+        <p class="field-hint">You need to be logged in as admin to change settings.</p>
+        <form id="login">
+          <input id="user" placeholder="Username" />
+          <input id="pass" placeholder="Password" type="password" />
+          <button class="btn-primary">Log In</button>
+        </form>
+        <div id="loginStatus" class="field-hint" style="margin-top:10px;text-align:center"></div>
+      </div>
+
+      <div class="card" id="settingsForm" style="display:none">
+        <div class="toolbar">
+          <h1>Settings</h1>
+        </div>
+
+        <form id="settings">
+          <div class="settings-section">
+            <h3>Organization Name</h3>
+            <p class="field-hint">Shown at the top of every page</p>
+            <input id="orgNameInput" placeholder="Your Organization" />
+          </div>
+
+          <div class="settings-section">
+            <h3>Tagline</h3>
+            <p class="field-hint">Shown below the organization name</p>
+            <input id="orgSubtitleInput" placeholder="A short description" />
+          </div>
+
+          <div class="settings-section">
+            <h3>Logo</h3>
+            <p class="field-hint">URL to your logo image (or leave blank to show text)</p>
+            <input id="logoUrlInput" placeholder="https://example.com/logo.png" />
+            <div id="logoPreview" class="logo-preview"></div>
+          </div>
+
+          <div class="settings-section">
+            <h3>App Title</h3>
+            <p class="field-hint">The browser tab title</p>
+            <input id="appTitleInput" placeholder="Pickup Tracker" />
+          </div>
+
+          <div class="settings-section">
+            <h3>Pickup Items</h3>
+            <p class="field-hint">Checkbox options shown in the pickup form. One per line.</p>
+            <textarea id="itemsInput" rows="5" placeholder="Food&#10;Household Items&#10;Clothes"></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary" style="margin-top:12px;width:100%">Save Settings</button>
+          <div id="saveStatus" class="field-hint" style="margin-top:10px;text-align:center"></div>
+        </form>
+      </div>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script>
+      function toast(msg) {
+        const t = document.getElementById('toast');
+        if (!t) return;
+        t.textContent = msg; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+      }
+
+      fetch('/api/config')
+        .then(res => res.json())
+        .then(config => {
+          document.title = `Settings - ${config.app.title}`;
+          const orgLogo = document.getElementById('orgLogo');
+          if (config.organization.logoUrl) {
+            const img = document.createElement('img');
+            img.src = config.organization.logoUrl;
+            img.alt = config.organization.name;
+            img.className = 'org-logo';
+            img.onerror = function(){this.style.display='none'};
+            orgLogo.parentNode.replaceChild(img, orgLogo);
+          } else {
+            orgLogo.textContent = config.organization.logoText;
+          }
+          document.getElementById('orgName').textContent = config.organization.name;
+          document.getElementById('orgSubtitle').textContent = config.organization.subtitle;
+        })
+        .catch(err => console.error('Failed to load config:', err));
+
+      let currentConfig = {};
+      const loginCard = document.getElementById('loginCard');
+      const settingsCard = document.getElementById('settingsForm');
+      const loginStatus = document.getElementById('loginStatus');
+      const saveStatus = document.getElementById('saveStatus');
+
+      document.getElementById('login').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loginStatus.textContent = 'Please wait...';
+        const res = await fetch('/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: document.getElementById('user').value.trim(), password: document.getElementById('pass').value }) });
+        if (res.ok) {
+          loginStatus.textContent = '';
+          loginCard.style.display = 'none';
+          settingsCard.style.display = 'block';
+          loadSettings();
+        } else {
+          loginStatus.textContent = 'Incorrect username or password.';
+        }
+      });
+
+      async function loadSettings() {
+        try {
+          const res = await fetch('/admin/settings');
+          if (!res.ok) { loginCard.style.display = 'block'; settingsCard.style.display = 'none'; loginStatus.textContent = 'Session expired. Log in again.'; return; }
+          currentConfig = await res.json();
+          document.getElementById('orgNameInput').value = currentConfig.organization.name || '';
+          document.getElementById('orgSubtitleInput').value = currentConfig.organization.subtitle || '';
+          document.getElementById('logoUrlInput').value = currentConfig.organization.logoUrl || '';
+          document.getElementById('appTitleInput').value = currentConfig.app.title || '';
+          document.getElementById('itemsInput').value = (currentConfig.items || []).join('\n');
+          updatePreview();
+          document.getElementById('orgName').textContent = currentConfig.organization.name || 'Food Pantry Management';
+          document.getElementById('orgSubtitle').textContent = currentConfig.organization.subtitle || 'Pickup Tracking System';
+          const ol = document.getElementById('orgLogo');
+          if (currentConfig.organization.logoUrl) {
+            const img = document.createElement('img');
+            img.src = currentConfig.organization.logoUrl;
+            img.alt = currentConfig.organization.name;
+            img.className = 'org-logo';
+            img.onerror = function(){this.style.display='none'};
+            ol.parentNode.replaceChild(img, ol);
+          } else {
+            ol.textContent = currentConfig.organization.logoText || 'Organization Logo';
+          }
+        } catch (err) {
+          toast('Could not load settings.');
+        }
+      }
+
+      function updatePreview() {
+        const url = document.getElementById('logoUrlInput').value.trim();
+        const preview = document.getElementById('logoPreview');
+        preview.innerHTML = '';
+        if (url) {
+          const img = document.createElement('img');
+          img.src = url;
+          img.alt = 'Logo preview';
+          img.className = 'org-logo';
+          img.onerror = function(){preview.innerHTML='<span class="field-hint">Could not load image</span>';};
+          preview.appendChild(img);
+        } else {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'org-logo-placeholder';
+          placeholder.style.cssText = 'height:48px;width:160px;font-size:12px';
+          placeholder.textContent = 'No logo set';
+          preview.appendChild(placeholder);
+        }
+      }
+      document.getElementById('logoUrlInput').addEventListener('input', updatePreview);
+
+      document.getElementById('settings').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const items = document.getElementById('itemsInput').value.split('\n').map(s => s.trim()).filter(Boolean);
+        const body = {
+          organization: {
+            name: document.getElementById('orgNameInput').value.trim(),
+            subtitle: document.getElementById('orgSubtitleInput').value.trim(),
+            logoUrl: document.getElementById('logoUrlInput').value.trim(),
+            logoText: ''
+          },
+          app: {
+            title: document.getElementById('appTitleInput').value.trim()
+          },
+          items
+        };
+        saveStatus.textContent = 'Saving...';
+        try {
+          const res = await fetch('/admin/settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+          if (!res.ok) throw new Error('save failed');
+          const result = await res.json();
+          currentConfig = result.config;
+          saveStatus.textContent = '✅ Settings saved!';
+          setTimeout(() => saveStatus.textContent = '', 3000);
+        } catch (err) {
+          saveStatus.textContent = 'Could not save. Try again.';
+        }
+      });
+    </script>
+  </body>
+</html>

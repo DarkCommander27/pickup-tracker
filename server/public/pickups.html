@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Pickups - Pickup Tracker</title>
+    <title>Pickups</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
@@ -15,16 +16,18 @@
           <p id="orgSubtitle" class="org-subtitle">Pickup Tracking System</p>
         </div>
       </div>
+
+      <div class="top-bar">
+        <a href="/admin.html" class="back-link">&#8592; Back to Admin</a>
+      </div>
+
       <div class="card">
         <div class="toolbar">
-          <h1>Pickups</h1>
-          <div>
-            <a id="exportLink" href="/api/export"><button class="secondary">Export JSON</button></a>
-            <button id="refresh">Refresh</button>
-            <a href="/"><button class="ghost">Back</button></a>
-          </div>
+          <h1>Pickup Records</h1>
+          <button id="refresh" class="btn-secondary">Refresh</button>
         </div>
-        <div id="list" class="card"></div>
+        <div id="list"></div>
+        <p id="emptyState" class="field-hint" style="display:none;text-align:center;padding:40px 0">No pickups recorded yet.</p>
       </div>
     </div>
     <div id="toast" class="toast"></div>
@@ -36,7 +39,12 @@
           document.title = `Pickups - ${config.app.title}`;
           const orgLogo = document.getElementById('orgLogo');
           if (config.organization.logoUrl) {
-            orgLogo.outerHTML = `<img src="${config.organization.logoUrl}" alt="${config.organization.name}" class="org-logo" />`;
+            const img = document.createElement('img');
+              img.src = config.organization.logoUrl;
+              img.alt = config.organization.name;
+              img.className = 'org-logo';
+              img.onerror = function(){this.style.display='none'};
+              orgLogo.parentNode.replaceChild(img, orgLogo);
           } else {
             orgLogo.textContent = config.organization.logoText;
           }

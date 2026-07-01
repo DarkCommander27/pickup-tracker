@@ -18,19 +18,8 @@ for /f "tokens=*" %%i in ('node --version') do set NODE_VERSION=%%i
 echo ✅ Node.js installed: %NODE_VERSION%
 echo.
 
-REM Check dependencies
-echo [2/5] Checking dependencies...
-if not exist "node_modules" (
-    echo ❌ Dependencies not installed
-    echo Run: npm install
-    pause
-    exit /b 1
-)
-echo ✅ Dependencies installed
-echo.
-
 REM Check server directory
-echo [3/5] Checking server directory...
+echo [2/5] Checking server directory...
 if not exist "server" (
     echo ❌ Server directory not found
     pause
@@ -40,12 +29,12 @@ echo ✅ Server directory exists
 echo.
 
 REM Check server dependencies
-echo [4/5] Checking server dependencies...
+echo [3/5] Checking server dependencies...
 if not exist "server\node_modules" (
-    echo ❌ Server dependencies not installed
-    cd server
+    echo 📦 Installing server dependencies...
+    pushd server
     call npm install
-    cd ..
+    popd
     if %errorlevel% neq 0 (
         echo ❌ Failed to install server dependencies
         pause
@@ -53,6 +42,15 @@ if not exist "server\node_modules" (
     )
 )
 echo ✅ Server dependencies installed
+echo.
+
+REM Check .env file
+echo [4/5] Checking configuration...
+if not exist ".env" (
+    echo ⚠️  No .env file found - using default credentials
+) else (
+    echo ✅ Configuration file found
+)
 echo.
 
 REM Test server startup (quick check)

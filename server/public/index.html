@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Pickup Tracker - Food Pantry Management</title>
+    <title>Pickup Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
@@ -15,24 +16,27 @@
           <p id="orgSubtitle" class="org-subtitle">Pickup Tracking System</p>
         </div>
       </div>
-      <div class="card">
+
+      <div class="hero-card">
         <h1 id="appTitle">Pickup Tracker</h1>
-        <p class="muted">Run this on a laptop and open the pages from tablets on the same local network.</p>
-        <div class="row">
-          <div class="col"><a href="/persons.html"><button class="secondary">Manage People</button></a></div>
-          <div class="col"><a href="/pickup.html"><button>Sign Pickup</button></a></div>
-          <div class="col"><a href="/pickups.html"><button class="ghost">View Pickups</button></a></div>
-        </div>
+        <p class="hero-desc">Record food pantry pickups with digital signatures.</p>
+        <a href="/pickup.html" class="hero-btn">Sign a Pickup</a>
+        <a href="/admin.html" class="hero-link">Admin Area &mdash; view records, manage people, export data</a>
       </div>
     </div>
     <script>
       fetch('/api/config')
         .then(res => res.json())
         .then(config => {
-          document.title = `${config.app.title} - ${config.organization.name}`;
+          document.title = config.app.title;
           const orgLogo = document.getElementById('orgLogo');
           if (config.organization.logoUrl) {
-            orgLogo.outerHTML = `<img src="${config.organization.logoUrl}" alt="${config.organization.name}" class="org-logo" />`;
+            const img = document.createElement('img');
+              img.src = config.organization.logoUrl;
+              img.alt = config.organization.name;
+              img.className = 'org-logo';
+              img.onerror = function(){this.style.display='none'};
+              orgLogo.parentNode.replaceChild(img, orgLogo);
           } else {
             orgLogo.textContent = config.organization.logoText;
           }

@@ -19,23 +19,21 @@ Thank you for purchasing the Pickup Tracker application. This guide will help yo
 ### Installation
 
 1. **Extract the files** to your desired location
-2. **Navigate to the server directory:**
+2. **Open a terminal** in the extracted folder
+3. **Create `.env` from the example:**
    ```bash
-   cd server
+   cp .env.example .env
    ```
-3. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-4. **Configure environment variables:**
-   ```bash
-   cp ../.env.example .env
-   ```
-5. **Edit `.env`** and update the following:
+4. **Edit `.env`** and update the following:
    - `ADMIN_USER` - Your admin username
    - `ADMIN_PASS` - Your admin password (use a strong password!)
    - `SESSION_SECRET` - A long random string for session security
    - `PORT` - The port you want the server to run on (default: 3000)
+
+5. **Install server dependencies:**
+   ```bash
+   cd server && npm install && cd ..
+   ```
 
 6. **Start the server:**
    ```bash
@@ -46,9 +44,19 @@ Thank you for purchasing the Pickup Tracker application. This guide will help yo
 
 ## 🎨 Customization
 
-### Organization Branding
+### Using the Settings Page (Recommended)
 
-The easiest way to customize the application is by editing `server/config.json`:
+Log into the Admin Area and click **Organization Settings**. You can change:
+- Organization name and tagline
+- Logo image URL (with live preview)
+- App title (browser tab name)
+- Pickup items (the checkboxes shown in step 2)
+
+Changes take effect immediately — no restart needed.
+
+### Editing config.json Directly
+
+You can also edit `server/config.json` by hand:
 
 ```json
 {

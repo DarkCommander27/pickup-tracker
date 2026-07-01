@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Manage People - Pickup Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
@@ -15,21 +16,24 @@
           <p id="orgSubtitle" class="org-subtitle">Pickup Tracking System</p>
         </div>
       </div>
+
+      <div class="top-bar">
+        <a href="/admin.html" class="back-link">&#8592; Back to Admin</a>
+      </div>
+
       <div class="card">
         <div class="toolbar">
           <h1>People</h1>
-          <a href="/"><button class="ghost">Back</button></a>
         </div>
 
-        <form id="personForm" class="card">
+        <form id="personForm">
           <div class="row">
             <div class="col"><input id="name" placeholder="Full name" required /></div>
           </div>
-          <div style="margin-top:8px"><button>Add person</button></div>
+          <div style="margin-top:8px"><button class="btn-primary">Add Person</button></div>
         </form>
 
-  <h2 class="small muted">Existing people</h2>
-  <div id="people" class="people-list card"></div>
+        <div id="people" class="people-list" style="margin-top:16px"></div>
       </div>
     </div>
     <div id="toast" class="toast"></div>
@@ -41,7 +45,12 @@
           document.title = `Manage People - ${config.app.title}`;
           const orgLogo = document.getElementById('orgLogo');
           if (config.organization.logoUrl) {
-            orgLogo.outerHTML = `<img src="${config.organization.logoUrl}" alt="${config.organization.name}" class="org-logo" />`;
+            const img = document.createElement('img');
+              img.src = config.organization.logoUrl;
+              img.alt = config.organization.name;
+              img.className = 'org-logo';
+              img.onerror = function(){this.style.display='none'};
+              orgLogo.parentNode.replaceChild(img, orgLogo);
           } else {
             orgLogo.textContent = config.organization.logoText;
           }

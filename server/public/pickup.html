@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Pickup Signing - Pickup Tracker</title>
+    <title>Sign a Pickup</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
@@ -15,46 +16,66 @@
           <p id="orgSubtitle" class="org-subtitle">Pickup Tracking System</p>
         </div>
       </div>
-      <div class="card">
+
+      <div class="top-bar">
+        <a href="/" class="back-link">&#8592; Back to Home</a>
+      </div>
+
+      <div class="card" id="wizardCard">
         <div class="toolbar">
-          <h1>Pickup Signing</h1>
+          <h1>Sign a Pickup</h1>
         </div>
 
-        <div class="steps small muted"><div class="step-label">1 — Person</div><div class="step-label">2 — Items</div><div class="step-label">3 — Signature</div></div>
+        <div class="steps">
+          <div class="step-label" id="stepLabel1">1. Who is coming?</div>
+          <div class="step-label" id="stepLabel2">2. Items received</div>
+          <div class="step-label" id="stepLabel3">3. Signature</div>
+        </div>
         <div class="progress-wrap"><div id="progress" class="progress" style="width:33%"></div></div>
 
         <div id="wizard">
           <div class="step" id="step1">
-            <h2 class="small muted">Step 1 — Date & Person</h2>
-            <label class="small muted">Name (type to autocomplete from saved names)</label>
-            <input id="name" placeholder="Enter person's name" autocomplete="off" />
+            <h2>Who is coming?</h2>
+            <label class="field-label">Full name</label>
+            <input id="name" placeholder="Type or choose a name" autocomplete="off" />
             <div id="nameAutocomplete" class="autocomplete-suggestions"></div>
 
+            <label class="field-label" style="margin-top:16px">Date</label>
             <input id="date" name="date" type="date" />
-            <div style="margin-top:8px"><button id="toStep2">Next: Items</button></div>
+            <button id="toStep2" class="btn-primary" style="margin-top:20px">Next: Items Received</button>
           </div>
 
           <div class="step" id="step2" style="display:none">
-            <h2 class="small muted">Step 2 — Items Received</h2>
-            <label><input type="checkbox" id="itemFood" /> Food</label>
-            <label><input type="checkbox" id="itemHousehold" /> Household Items</label>
-            <label><input type="checkbox" id="itemClothes" /> Clothes</label>
-            <div style="margin-top:8px">
-              <button id="backTo1" class="secondary">Back</button>
-              <button id="toStep3">Next: Signature</button>
+            <h2>What did they receive?</h2>
+            <p class="field-hint">Check all that apply</p>
+            <div id="itemsContainer" class="items-grid"></div>
+            <label class="field-label" style="margin-top:16px">Notes (optional)</label>
+            <textarea id="notes" rows="2" placeholder="Anything to note about this visit"></textarea>
+            <div class="btn-row">
+              <button id="backTo1" class="btn-secondary">Back</button>
+              <button id="toStep3" class="btn-primary">Next: Signature</button>
             </div>
           </div>
 
           <div class="step" id="step3" style="display:none">
-            <h2 class="small muted">Step 3 — Signature</h2>
-            <canvas id="sig" width="600" height="200"></canvas>
-            <div style="margin-top:8px">
-              <button id="clearSig" class="secondary">Clear</button>
-              <button id="backTo2" class="secondary">Back</button>
-              <button id="save">Save Pickup (with signature)</button>
+            <h2>Sign here</h2>
+            <p class="field-hint">Use your finger or mouse to sign below</p>
+            <canvas id="sig"></canvas>
+            <div class="btn-row">
+              <button id="clearSig" class="btn-secondary">Clear &amp; Try Again</button>
+              <button id="backTo2" class="btn-secondary">Back</button>
+              <button id="save" class="btn-primary">Save Pickup</button>
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="card success-card" id="successCard" style="display:none">
+        <div class="success-icon">&#10003;</div>
+        <h2>Pickup Saved!</h2>
+        <p id="successName"></p>
+        <button id="anotherPickup" class="btn-primary">Record Another Pickup</button>
+        <a href="/" class="back-link" style="display:inline-block;margin-top:12px">&#8592; Back to Home</a>
       </div>
     </div>
     <div id="toast" class="toast"></div>
@@ -63,10 +84,15 @@
       fetch('/api/config')
         .then(res => res.json())
         .then(config => {
-          document.title = `Pickup Signing - ${config.app.title}`;
+          document.title = `Sign a Pickup - ${config.app.title}`;
           const orgLogo = document.getElementById('orgLogo');
           if (config.organization.logoUrl) {
-            orgLogo.outerHTML = `<img src="${config.organization.logoUrl}" alt="${config.organization.name}" class="org-logo" />`;
+            const img = document.createElement('img');
+              img.src = config.organization.logoUrl;
+              img.alt = config.organization.name;
+              img.className = 'org-logo';
+              img.onerror = function(){this.style.display='none'};
+              orgLogo.parentNode.replaceChild(img, orgLogo);
           } else {
             orgLogo.textContent = config.organization.logoText;
           }
