@@ -1,0 +1,18 @@
+{
+  "pickups": [
+    {
+      "id": 1,
+      "name": "Test Person",
+      "date": "2026-06-30",
+      "notes": "",
+      "signature": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "items": [
+        "Food"
+      ]
+    }
+  ],
+  "nextId": 2,
+  "persons": [],
+  "nextPersonId": 1,
+  "clientIntake": []
+}
